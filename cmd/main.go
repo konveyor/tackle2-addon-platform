@@ -6,6 +6,7 @@ import (
 
 	"github.com/konveyor/tackle2-addon/ssh"
 	hub "github.com/konveyor/tackle2-hub/addon"
+	"github.com/konveyor/tackle2-hub/api"
 	"github.com/konveyor/tackle2-hub/nas"
 	"k8s.io/utils/env"
 )
@@ -29,6 +30,7 @@ func init() {
 
 // Data Addon data passed in the secret.
 type Data struct {
+	Filter api.Map
 }
 
 // main
