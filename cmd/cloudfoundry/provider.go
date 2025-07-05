@@ -11,11 +11,13 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+// Provider is a cloudfoundry provider.
 type Provider struct {
 	URL      string
 	Identity *api.Identity
 }
 
+// Fetch the manifest for the application.
 func (p *Provider) Fetch(application *api.Application) (m *api.Manifest, err error) {
 	if application.Coordinates == nil {
 		return
@@ -43,6 +45,7 @@ func (p *Provider) Fetch(application *api.Application) (m *api.Manifest, err err
 	return
 }
 
+// Find applications on the platform.
 func (p *Provider) Find(filter api.Map) (found []api.Application, err error) {
 	f := Filter{}
 	err = filter.As(&f)
@@ -77,6 +80,7 @@ func (p *Provider) Find(filter api.Map) (found []api.Application, err error) {
 	return
 }
 
+// client returns a cloudfoundry client.
 func (p *Provider) client(spaces ...string) (client *cfp.CloudFoundryProvider, err error) {
 	options := []cf.Option{
 		cf.SkipTLSValidation(),
@@ -103,16 +107,19 @@ func (p *Provider) client(spaces ...string) (client *cfp.CloudFoundryProvider, e
 	return
 }
 
+// Coordinates - platform coordinates.
 type Coordinates struct {
 	Space string `json:"space"`
 	Name  string `json:"name"`
 }
 
+// Filter applications.
 type Filter struct {
 	Spaces []string `json:"spaces"`
 	Names  []string `json:"names"`
 }
 
+// MatchSpace returns true when the application name matches the filter.
 func (f *Filter) MatchSpace(name string) (match bool) {
 	for _, s := range f.Spaces {
 		match = s == name
@@ -123,6 +130,8 @@ func (f *Filter) MatchSpace(name string) (match bool) {
 	return
 }
 
+// MatchName returns true when the name matches the filter.
+// The name may be a glob.
 func (f *Filter) MatchName(name string) (match bool) {
 	for _, pattern := range f.Names {
 		match, _ = filepath.Match(pattern, name)

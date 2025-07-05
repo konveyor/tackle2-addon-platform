@@ -9,9 +9,12 @@ import (
 
 type Files = map[string]string
 
+// Generator is a helm generator.
 type Generator struct {
 }
 
+// Generate generates assets.
+// Returns a list of files (content).
 func (g *Generator) Generate(templateDir string, values api.Map) (files Files, err error) {
 	files = make(Files)
 	config := hp.Config{

@@ -6,10 +6,12 @@ import (
 	"github.com/konveyor/tackle2-hub/api"
 )
 
+// Action provides and addon action.
 type Action interface {
 	Run(*Data) error
 }
 
+// NewAction returns and action based the data provided.
 func NewAction(d *Data) (a Action, err error) {
 	switch d.Action {
 	case "fetch":
@@ -24,11 +26,14 @@ func NewAction(d *Data) (a Action, err error) {
 	return
 }
 
+// BaseAction provides base functionality.
 type BaseAction struct {
 	application api.Application
 	platform    api.Platform
 }
 
+// setApplication fetches and sets `application` referenced by the task.
+// The associated `platform` will be set when as appropriate.
 func (r *BaseAction) setApplication() (err error) {
 	defer func() {
 		if err != nil {
@@ -53,6 +58,7 @@ func (r *BaseAction) setApplication() (err error) {
 	return
 }
 
+// setPlatform fetches and sets `platform` referenced by the task.
 func (r *BaseAction) setPlatform() (err error) {
 	defer func() {
 		if err != nil {

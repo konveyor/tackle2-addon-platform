@@ -12,10 +12,12 @@ import (
 
 type Files = map[string]string
 
+// Generate assets action.
 type Generate struct {
 	BaseAction
 }
 
+// Run executes that action.
 func (a *Generate) Run(d *Data) (err error) {
 	err = a.setApplication()
 	if err != nil {
@@ -74,6 +76,7 @@ func (a *Generate) Run(d *Data) (err error) {
 	return
 }
 
+// generate executes a generator.
 func (a *Generate) generate(
 	gen *api.Generator,
 	templateDir string,
@@ -96,7 +99,7 @@ func (a *Generate) generate(
 		assetPath := path.Join(
 			assetDir,
 			path.Base(name))
-		err = a.write(assetPath, content)
+		err = a.writeAsset(assetPath, content)
 		if err == nil {
 			paths = append(paths, assetPath)
 		} else {
@@ -106,7 +109,8 @@ func (a *Generate) generate(
 	return
 }
 
-func (a *Generate) write(assetPath, content string) (err error) {
+// writeAsset writes a generated asset file.
+func (a *Generate) writeAsset(assetPath, content string) (err error) {
 	f, err := os.Create(assetPath)
 	if err != nil {
 		return
@@ -124,6 +128,7 @@ func (a *Generate) write(assetPath, content string) (err error) {
 	return
 }
 
+// values returns the `values` file passed to the generator.
 func (a *Generate) values(gen *api.Generator) (values api.Map, err error) {
 	tags := []api.Tag{}
 	for _, ref := range a.application.Tags {
@@ -146,6 +151,7 @@ func (a *Generate) values(gen *api.Generator) (values api.Map, err error) {
 	return
 }
 
+// fetchTemplates clones the repository associated with the generator.
 func (a *Generate) fetchTemplates(gen *api.Generator) (templateDir string, err error) {
 	genId := strconv.Itoa(int(gen.ID))
 	templateDir = path.Join(
@@ -176,6 +182,8 @@ func (a *Generate) fetchTemplates(gen *api.Generator) (templateDir string, err e
 	return
 }
 
+// generators returns the generators that are associated with
+// the archetypes that are associate with the application.
 func (a *Generate) generators() (list []*api.Generator, err error) {
 	for _, ref := range a.application.Archetypes {
 		var arch *api.Archetype

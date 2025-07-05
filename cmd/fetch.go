@@ -5,10 +5,12 @@ import (
 	"github.com/konveyor/tackle2-hub/api"
 )
 
+// Fetch application manifest action.
 type Fetch struct {
 	BaseAction
 }
 
+// Run executes the action.
 func (a *Fetch) Run(d *Data) (err error) {
 	err = a.setApplication()
 	if err != nil {

@@ -5,10 +5,12 @@ import (
 	"github.com/konveyor/tackle2-hub/api"
 )
 
+// Import applications action.
 type Import struct {
 	BaseAction
 }
 
+// Run executes the action.
 func (a *Import) Run(d *Data) (err error) {
 	err = a.setPlatform()
 	if err != nil {
