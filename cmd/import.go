@@ -46,18 +46,18 @@ func (a *Import) Run(d *Data) (err error) {
 		"[Import] Found %d applications.",
 		len(list))
 	for _, app := range list {
-		nErr := addon.Application.Create(&app)
-		if nErr == nil {
-			addon.Activity(
-				"[Import] Application: %s, created.",
-				app.Name)
+		err := addon.Application.Create(&app)
+		if err != nil {
+			addon.Errorf(
+				"warn",
+				"[Import] Application: %s, create failed: %s",
+				app.Name,
+				err.Error())
 			continue
 		}
-		addon.Errorf(
-			"warn",
-			"[Import] Application: %s, create failed: %s",
-			app.Name,
-			nErr.Error())
+		addon.Activity(
+			"[Import] Application: %s, created.",
+			app.Name)
 	}
 	return
 }
