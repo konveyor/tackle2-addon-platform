@@ -19,7 +19,7 @@ var (
 
 func init() {
 	Dir, _ = os.Getwd()
-	TemplateDir = path.Join(Dir, "/templates")
+	TemplateDir = path.Join(Dir, "templates")
 	AssetDir = path.Join(Dir, "assets")
 }
 
