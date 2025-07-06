@@ -18,6 +18,12 @@ type Generate struct {
 }
 
 // Run executes that action.
+// - fetch the application asset repository.
+// - for each associated generator:
+//   - fetch template repository.
+//   - generate
+//   - write files into asset repository.
+// - commit asset repository.
 func (a *Generate) Run(d *Data) (err error) {
 	err = a.setApplication()
 	if err != nil {
