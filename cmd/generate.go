@@ -23,6 +23,7 @@ type Generate struct {
 //   - fetch template repository.
 //   - generate
 //   - write files into asset repository.
+//
 // - commit asset repository.
 func (a *Generate) Run(d *Data) (err error) {
 	err = a.setApplication()
