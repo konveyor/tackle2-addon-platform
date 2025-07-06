@@ -1,14 +1,16 @@
 package cloudfoundry
 
 import (
-	"fmt"
 	"path/filepath"
 
 	cf "github.com/cloudfoundry/go-cfclient/v3/config"
 	cfp "github.com/konveyor/asset-generation/pkg/providers/discoverers/cloud_foundry"
-	"github.com/konveyor/tackle2-hub/addon"
+	hub "github.com/konveyor/tackle2-hub/addon"
 	"github.com/konveyor/tackle2-hub/api"
-	"gopkg.in/yaml.v3"
+)
+
+var (
+	addon = hub.Addon
 )
 
 // Provider is a cloudfoundry provider.
@@ -133,71 +135,16 @@ func (f *Filter) MatchSpace(name string) (match bool) {
 // MatchName returns true when the name matches the filter.
 // The name may be a glob.
 func (f *Filter) MatchName(name string) (match bool) {
+	var err error
 	for _, pattern := range f.Names {
-		match, _ = filepath.Match(pattern, name)
+		match, err = filepath.Match(pattern, name)
+		if err != nil {
+			addon.Log.Error(err, "Invalid glob pattern", "pattern", pattern)
+			continue
+		}
 		if match {
 			break
 		}
-	}
-	return
-}
-
-//
-//
-
-func (p *Provider) Test() (err error) {
-	provider, err := p.testProvider()
-	if err != nil {
-		return
-	}
-	spaces, err := provider.ListApps()
-	if err != nil {
-		return
-	}
-	//
-	//
-	for _, refs := range spaces {
-		for _, ref := range refs {
-			manifest, nErr := provider.Discover(ref)
-			if nErr != nil {
-				err = nErr
-				return
-			}
-			s, _ := yaml.Marshal(manifest)
-			fmt.Printf("%s\n", s)
-		}
-	}
-	ref := cfp.AppReference{
-		SpaceName: "space",
-		AppName:   "nginx",
-	}
-	manifest, err := provider.Discover(ref)
-	if err != nil {
-		return
-	}
-	s, _ := yaml.Marshal(manifest)
-	fmt.Printf("%s\n", s)
-
-	return
-}
-
-func (p *Provider) testProvider() (provider *cfp.CloudFoundryProvider, err error) {
-	user := "admin"
-	password := "dtuqBCRms14buxCnCVy2J7g2n8GVHs"
-	cfConfig, err := cf.New(
-		"https://api.bosh-lite.com",
-		cf.UserPassword(user, password),
-		cf.SkipTLSValidation())
-	if err != nil {
-		return
-	}
-	pConfig := &cfp.Config{
-		CloudFoundryConfig: cfConfig,
-		SpaceNames:         []string{"space"},
-	}
-	provider, err = cfp.New(pConfig, &addon.Log)
-	if err != nil {
-		return
 	}
 	return
 }
