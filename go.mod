@@ -9,12 +9,11 @@ require (
 	github.com/konveyor/asset-generation v0.1.2-0.20250703144141-e8dff2cf9e1e
 	github.com/konveyor/tackle2-addon v0.7.0-alpha.2.0.20250416134249-7c0f33d51619
 	github.com/konveyor/tackle2-hub v0.7.0-alpha.2.0.20250625141938-46e0b1bf5d0f
-	gopkg.in/yaml.v3 v3.0.1
 )
 
 replace github.com/konveyor/tackle2-hub => github.com/jortel/tackle2-hub v0.0.0-20250705181441-9c08d48947e5
 
-replace github.com/konveyor/tackle2-addon => github.com/jortel/tackle2-addon v0.0.0-20250706180638-c4c3ac0813d6
+replace github.com/konveyor/tackle2-addon => github.com/jortel/tackle2-addon v0.0.0-20250707124528-df014b47fe4a
 
 require (
 	dario.cat/mergo v1.0.1 // indirect
@@ -128,6 +127,7 @@ require (
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/op/go-logging.v1 v1.0.0-20160211212156-b2cb9fa56473 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 	gorm.io/gorm v1.25.2-0.20230530020048-26663ab9bf55 // indirect
 	helm.sh/helm/v3 v3.17.3 // indirect
 	k8s.io/api v0.32.2 // indirect

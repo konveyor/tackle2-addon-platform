@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"os"
 	"path"
 	"strconv"
@@ -103,12 +104,14 @@ func (a *Generate) generate(
 	}
 	var files Files
 	switch gen.Kind {
-	default:
-		h := helm.Generator{}
-		files, err = h.Generate(templateDir, values)
+	case "helm":
+		files, err = a.helm(templateDir, values)
 		if err != nil {
 			return
 		}
+	default:
+		err = errors.New("generator.kind not supported")
+		return
 	}
 	for name, content := range files {
 		assetPath := path.Join(
@@ -210,5 +213,12 @@ func (a *Generate) generators() (list []*api.Generator, err error) {
 			}
 		}
 	}
+	return
+}
+
+// helm implementation.
+func (a Generate) helm(templateDir string, values api.Map) (files Files, err error) {
+	h := helm.Generator{}
+	files, err = h.Generate(templateDir, values)
 	return
 }
