@@ -102,7 +102,7 @@ func (p *Provider) client(spaces ...string) (client *cfp.CloudFoundryProvider, e
 		CloudFoundryConfig: cfConfig,
 		SpaceNames:         spaces,
 	}
-	client, err = cfp.New(pConfig, &addon.Log)
+	client, err = cfp.New(pConfig, &addon.Log, true)
 	if err != nil {
 		return
 	}

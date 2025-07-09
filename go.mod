@@ -6,14 +6,14 @@ toolchain go1.23.10
 
 require (
 	github.com/cloudfoundry/go-cfclient/v3 v3.0.0-alpha.12
-	github.com/konveyor/asset-generation v0.1.2-0.20250703144141-e8dff2cf9e1e
+	github.com/konveyor/asset-generation v0.1.4
 	github.com/konveyor/tackle2-addon v0.7.0-alpha.2.0.20250416134249-7c0f33d51619
 	github.com/konveyor/tackle2-hub v0.7.0-alpha.2.0.20250625141938-46e0b1bf5d0f
 )
 
 replace github.com/konveyor/tackle2-hub => github.com/jortel/tackle2-hub v0.0.0-20250705181441-9c08d48947e5
 
-replace github.com/konveyor/tackle2-addon => github.com/jortel/tackle2-addon v0.0.0-20250707131941-cfe563251fc4
+replace github.com/konveyor/tackle2-addon => github.com/jortel/tackle2-addon v0.0.0-20250707211220-d3be5620bcd4
 
 require (
 	dario.cat/mergo v1.0.1 // indirect
@@ -44,7 +44,7 @@ require (
 	github.com/gabriel-vasile/mimetype v1.4.8 // indirect
 	github.com/gin-contrib/sse v0.1.0 // indirect
 	github.com/gin-gonic/gin v1.9.1 // indirect
-	github.com/go-logr/logr v1.4.2 // indirect
+	github.com/go-logr/logr v1.4.3 // indirect
 	github.com/go-martini/martini v0.0.0-20170121215854-22fa46961aab // indirect
 	github.com/go-openapi/jsonpointer v0.21.0 // indirect
 	github.com/go-openapi/jsonreference v0.20.2 // indirect
