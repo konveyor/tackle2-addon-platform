@@ -11,7 +11,7 @@ require (
 	github.com/konveyor/tackle2-hub v0.7.0-alpha.2.0.20250625141938-46e0b1bf5d0f
 )
 
-replace github.com/konveyor/tackle2-hub => github.com/jortel/tackle2-hub v0.0.0-20250705181441-9c08d48947e5
+replace github.com/konveyor/tackle2-hub => github.com/jortel/tackle2-hub v0.0.0-20250717130013-86594f47b4a2
 
 replace github.com/konveyor/tackle2-addon => github.com/jortel/tackle2-addon v0.0.0-20250707211220-d3be5620bcd4
 

@@ -7,6 +7,8 @@ import (
 	cfp "github.com/konveyor/asset-generation/pkg/providers/discoverers/cloud_foundry"
 	hub "github.com/konveyor/tackle2-hub/addon"
 	"github.com/konveyor/tackle2-hub/api"
+	"github.com/konveyor/tackle2-hub/api/jsd"
+	"github.com/konveyor/tackle2-hub/migration/json"
 )
 
 var (
@@ -62,6 +64,10 @@ func (p *Provider) Find(filter api.Map) (found []api.Application, err error) {
 	if err != nil {
 		return
 	}
+	schema, err := addon.Schema.Find("platform", "cloudfoundry", "coordinates")
+	if err != nil {
+		return
+	}
 	for space, applications := range spaces {
 		if !f.MatchSpace(space) {
 			continue
@@ -76,6 +82,13 @@ func (p *Provider) Find(filter api.Map) (found []api.Application, err error) {
 			}
 			r := api.Application{}
 			r.Name = appRef.AppName
+			r.Coordinates = &jsd.Document{
+				Schema: schema.Name,
+				Content: json.Map{
+					"name":  appRef.AppName,
+					"space": space,
+				},
+			}
 			found = append(found, r)
 		}
 	}

@@ -156,8 +156,8 @@ github.com/jortel/go-utils v0.1.4 h1:DzrID+gI9urEGkOoXYGYIKA/bozEIxmcYV/4cdVjW58
 github.com/jortel/go-utils v0.1.4/go.mod h1:7vzFYbnb91+ltjjAmCv2jVL4CKX7Onz1i2EQPAvw9Cs=
 github.com/jortel/tackle2-addon v0.0.0-20250707211220-d3be5620bcd4 h1:+v7eU4F2P0yvSpSb4yE6ya+mh94iofwKSDThV22v8P8=
 github.com/jortel/tackle2-addon v0.0.0-20250707211220-d3be5620bcd4/go.mod h1:mITXAU1o/8ZdBoGacaTZxXORfFe1q2S74W9RfTHHm7A=
-github.com/jortel/tackle2-hub v0.0.0-20250705181441-9c08d48947e5 h1:BkZKCyadX0ektbHdgqXjbN+J+WqzJJ32nguKTntOY0E=
-github.com/jortel/tackle2-hub v0.0.0-20250705181441-9c08d48947e5/go.mod h1:3bhl0j9xs8T1ONmxu5NbtSrodoArdVEfhlZoOGJUoGA=
+github.com/jortel/tackle2-hub v0.0.0-20250717130013-86594f47b4a2 h1:k6Ok5mwHb6umGlWT6il8FnLak7p+3EEkJMIVSZOi2H8=
+github.com/jortel/tackle2-hub v0.0.0-20250717130013-86594f47b4a2/go.mod h1:3bhl0j9xs8T1ONmxu5NbtSrodoArdVEfhlZoOGJUoGA=
 github.com/josharian/intern v1.0.0 h1:vlS4z54oSdjm0bgjRigI+G1HpF+tI+9rE5LLzOg8HmY=
 github.com/josharian/intern v1.0.0/go.mod h1:5DoeVV0s6jJacbCEi61lwdGj/aVlrQvzHFFd8Hwg//Y=
 github.com/json-iterator/go v1.1.12 h1:PV8peI4a0ysnczrg+LtxykD8LfKY9ML6u2jnxaEnrnM=
