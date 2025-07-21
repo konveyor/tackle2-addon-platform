@@ -149,6 +149,10 @@ func (f *Filter) MatchSpace(name string) (match bool) {
 // The name may be a glob.
 func (f *Filter) MatchName(name string) (match bool) {
 	var err error
+	if len(f.Names) == 0 {
+		match = true
+		return
+	}
 	for _, pattern := range f.Names {
 		match, err = filepath.Match(pattern, name)
 		if err != nil {

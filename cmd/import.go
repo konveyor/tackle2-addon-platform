@@ -34,7 +34,9 @@ func (a *Import) Run(d *Data) (err error) {
 		"[Import] Found %d applications.",
 		len(applications))
 	for _, app := range applications {
-		app.Platform.ID = a.platform.ID
+		app.Platform = &api.Ref{
+			ID: a.platform.ID,
+		}
 		err := addon.Application.Create(&app)
 		if err != nil {
 			addon.Errorf(
