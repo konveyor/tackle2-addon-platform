@@ -9,6 +9,7 @@ import (
 	"github.com/konveyor/tackle2-hub/api"
 	"github.com/konveyor/tackle2-hub/api/jsd"
 	"github.com/konveyor/tackle2-hub/migration/json"
+	"github.com/pkg/errors"
 )
 
 var (
@@ -24,6 +25,7 @@ type Provider struct {
 // Fetch the manifest for the application.
 func (p *Provider) Fetch(application *api.Application) (m *api.Manifest, err error) {
 	if application.Coordinates == nil {
+		err = errors.Errorf("Coordinates required.")
 		return
 	}
 	coordinates := Coordinates{}
@@ -73,10 +75,7 @@ func (p *Provider) Find(filter api.Map) (found []api.Application, err error) {
 			continue
 		}
 		for _, ref := range applications {
-			appRef, cast := ref.(cfp.AppReference)
-			if !cast {
-				continue
-			}
+			appRef := ref.(cfp.AppReference)
 			if !f.MatchName(appRef.AppName) {
 				continue
 			}

@@ -11,7 +11,7 @@ import (
 	"github.com/konveyor/tackle2-hub/api"
 )
 
-type Files = map[string]string
+type Files = helm.Files
 
 // Generate assets action.
 type Generate struct {
@@ -36,7 +36,7 @@ func (a *Generate) Run(d *Data) (err error) {
 		a.application.ID,
 		a.application.Name)
 	if a.application.Assets == nil {
-		addon.Failed("[Gen] not asset repository defined.")
+		addon.Failed("[Gen] asset repository not defined.")
 		return
 	}
 	identity, err := a.selectIdentity("asset")
@@ -209,7 +209,11 @@ func (a *Generate) generators() (list []*api.Generator, err error) {
 			var gen *api.Generator
 			for _, ref = range p.Generators {
 				gen, err = addon.Generator.Get(ref.ID)
-				list = append(list, gen)
+				if err == nil {
+					list = append(list, gen)
+				} else {
+					return
+				}
 			}
 		}
 	}
