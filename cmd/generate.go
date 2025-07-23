@@ -55,7 +55,7 @@ func (a *Generate) Run(d *Data) (err error) {
 	assetDir := path.Join(
 		AssetDir,
 		a.application.Assets.Path)
-	generators, err := a.generators(d)
+	generators, err := a.generators(d.Profiles)
 	if err != nil {
 		return
 	}
@@ -191,9 +191,8 @@ func (a *Generate) fetchTemplates(gen *api.Generator) (templateDir string, err e
 	return
 }
 
-// generators returns the generators that are associated with
-// the archetypes that are associate with the application.
-func (a *Generate) generators(d *Data) (list []*api.Generator, err error) {
+// profiles returns requested profiles.
+func (a *Generate) profiles(requested Profiles) (matched []*api.TargetProfile, err error) {
 	for _, ref := range a.application.Archetypes {
 		var arch *api.Archetype
 		arch, err = addon.Archetype.Get(ref.ID)
@@ -201,17 +200,28 @@ func (a *Generate) generators(d *Data) (list []*api.Generator, err error) {
 			return
 		}
 		for _, p := range arch.Profiles {
-			if !d.Profiles.match(&p) {
-				continue
+			if requested.match(&p) {
+				matched = append(matched, &p)
 			}
-			var gen *api.Generator
-			for _, ref = range p.Generators {
-				gen, err = addon.Generator.Get(ref.ID)
-				if err == nil {
-					list = append(list, gen)
-				} else {
-					return
-				}
+		}
+	}
+	return
+}
+
+// generators returns requested generators.
+func (a *Generate) generators(requested Profiles) (list []*api.Generator, err error) {
+	profiles, err := a.profiles(requested)
+	if err != nil {
+		return
+	}
+	for _, p := range profiles {
+		var gen *api.Generator
+		for _, ref := range p.Generators {
+			gen, err = addon.Generator.Get(ref.ID)
+			if err == nil {
+				list = append(list, gen)
+			} else {
+				return
 			}
 		}
 	}
@@ -223,6 +233,10 @@ type Profiles []api.Ref
 
 // match returns true when the profile ID matched.
 func (f Profiles) match(p *api.TargetProfile) (matched bool) {
+	if len(f) == 0 {
+		matched = true
+		return
+	}
 	for _, ref := range f {
 		matched = ref.ID == p.ID
 		if !matched {
