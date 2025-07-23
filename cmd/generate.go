@@ -1,17 +1,15 @@
 package main
 
 import (
-	"errors"
 	"os"
 	"path"
 	"strconv"
 
-	"github.com/konveyor/tackle2-addon-platform/cmd/helm"
 	"github.com/konveyor/tackle2-addon/repository"
 	"github.com/konveyor/tackle2-hub/api"
 )
 
-type Files = helm.Files
+type Files = map[string]string
 
 // Generate assets action.
 type Generate struct {
@@ -102,15 +100,12 @@ func (a *Generate) generate(
 	if err != nil {
 		return
 	}
-	var files Files
-	switch gen.Kind {
-	case "helm":
-		files, err = a.helm(templateDir, values)
-		if err != nil {
-			return
-		}
-	default:
-		err = errors.New("generator.kind not supported")
+	engine, err := a.selectEngine(gen.Kind)
+	if err != nil {
+		return
+	}
+	files, err := engine.Generate(templateDir, values)
+	if err != nil {
 		return
 	}
 	for name, content := range files {
@@ -217,12 +212,5 @@ func (a *Generate) generators() (list []*api.Generator, err error) {
 			}
 		}
 	}
-	return
-}
-
-// helm implementation.
-func (a Generate) helm(templateDir string, values api.Map) (files Files, err error) {
-	h := helm.Generator{}
-	files, err = h.Generate(templateDir, values)
 	return
 }

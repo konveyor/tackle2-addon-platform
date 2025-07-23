@@ -22,6 +22,11 @@ type Provider struct {
 	Identity *api.Identity
 }
 
+// Use identity.
+func (p *Provider) Use(identity *api.Identity) {
+	p.Identity = identity
+}
+
 // Fetch the manifest for the application.
 func (p *Provider) Fetch(application *api.Application) (m *api.Manifest, err error) {
 	if application.Coordinates == nil {
