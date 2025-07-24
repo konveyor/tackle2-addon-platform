@@ -25,13 +25,12 @@ func init() {
 
 // Data Addon data passed in the secret.
 type Data struct {
-	// Action
-	// - import
-	// - fetch
-	// - generate
+	// Action (fetch|import|generate)
 	Action string `json:"action"`
 	// Filter applications.
 	Filter api.Map `json:"filter"`
+	// Profiles used for asset generation.
+	Profiles Profiles `json:"profiles"`
 }
 
 // main

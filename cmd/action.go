@@ -3,6 +3,8 @@ package main
 import (
 	"errors"
 
+	"github.com/konveyor/tackle2-addon-platform/cmd/cloudfoundry"
+	"github.com/konveyor/tackle2-addon-platform/cmd/helm"
 	"github.com/konveyor/tackle2-hub/api"
 )
 
@@ -88,4 +90,54 @@ func (r *BaseAction) selectIdentity(kind string) (ref *api.Ref, err error) {
 		}
 	}
 	return
+}
+
+// selectProvider returns a platform provider based on kind.
+func (r *BaseAction) selectProvider(kind string) (p Provider, err error) {
+	switch kind {
+	case "cloudfoundry":
+		p = &cloudfoundry.Provider{
+			URL: r.platform.URL,
+		}
+	default:
+		err = errors.New("platform kind not supported")
+		return
+	}
+	if r.platform.Identity.ID == 0 {
+		return
+	}
+	id, err := addon.Identity.Get(r.platform.Identity.ID)
+	if err != nil {
+		return
+	}
+	p.Use(id)
+	addon.Activity(
+		"[Provider] Using credentials (id=%d): %s",
+		id.ID,
+		id.Name)
+	return
+}
+
+// selectEngine returns a template engine based on kind.
+func (r *BaseAction) selectEngine(kind string) (e Engine, err error) {
+	switch kind {
+	case "helm":
+		e = &helm.Engine{}
+	default:
+		err = errors.New("generator kind not supported")
+		return
+	}
+	return
+}
+
+// Provider is platform provider.
+type Provider interface {
+	Use(identity *api.Identity)
+	Fetch(application *api.Application) (m *api.Manifest, err error)
+	Find(filter api.Map) (found []api.Application, err error)
+}
+
+// Engine is a templating engine.
+type Engine interface {
+	Generate(templateDir string, values api.Map) (files Files, err error)
 }

@@ -1,12 +1,10 @@
 package main
 
 import (
-	"errors"
 	"os"
 	"path"
 	"strconv"
 
-	"github.com/konveyor/tackle2-addon-platform/cmd/helm"
 	"github.com/konveyor/tackle2-addon/repository"
 	"github.com/konveyor/tackle2-hub/api"
 )
@@ -36,7 +34,7 @@ func (a *Generate) Run(d *Data) (err error) {
 		a.application.ID,
 		a.application.Name)
 	if a.application.Assets == nil {
-		addon.Failed("[Gen] not asset repository defined.")
+		addon.Failed("[Gen] asset repository not defined.")
 		return
 	}
 	identity, err := a.selectIdentity("asset")
@@ -57,7 +55,7 @@ func (a *Generate) Run(d *Data) (err error) {
 	assetDir := path.Join(
 		AssetDir,
 		a.application.Assets.Path)
-	generators, err := a.generators()
+	generators, err := a.generators(d.Profiles)
 	if err != nil {
 		return
 	}
@@ -102,15 +100,12 @@ func (a *Generate) generate(
 	if err != nil {
 		return
 	}
-	var files Files
-	switch gen.Kind {
-	case "helm":
-		files, err = a.helm(templateDir, values)
-		if err != nil {
-			return
-		}
-	default:
-		err = errors.New("generator.kind not supported")
+	engine, err := a.selectEngine(gen.Kind)
+	if err != nil {
+		return
+	}
+	files, err := engine.Generate(templateDir, values)
+	if err != nil {
 		return
 	}
 	for name, content := range files {
@@ -196,9 +191,8 @@ func (a *Generate) fetchTemplates(gen *api.Generator) (templateDir string, err e
 	return
 }
 
-// generators returns the generators that are associated with
-// the archetypes that are associate with the application.
-func (a *Generate) generators() (list []*api.Generator, err error) {
+// profiles returns requested profiles.
+func (a *Generate) profiles(requested Profiles) (matched []*api.TargetProfile, err error) {
 	for _, ref := range a.application.Archetypes {
 		var arch *api.Archetype
 		arch, err = addon.Archetype.Get(ref.ID)
@@ -206,19 +200,48 @@ func (a *Generate) generators() (list []*api.Generator, err error) {
 			return
 		}
 		for _, p := range arch.Profiles {
-			var gen *api.Generator
-			for _, ref = range p.Generators {
-				gen, err = addon.Generator.Get(ref.ID)
-				list = append(list, gen)
+			if requested.match(&p) {
+				matched = append(matched, &p)
 			}
 		}
 	}
 	return
 }
 
-// helm implementation.
-func (a Generate) helm(templateDir string, values api.Map) (files Files, err error) {
-	h := helm.Generator{}
-	files, err = h.Generate(templateDir, values)
+// generators returns requested generators.
+func (a *Generate) generators(requested Profiles) (list []*api.Generator, err error) {
+	profiles, err := a.profiles(requested)
+	if err != nil {
+		return
+	}
+	for _, p := range profiles {
+		var gen *api.Generator
+		for _, ref := range p.Generators {
+			gen, err = addon.Generator.Get(ref.ID)
+			if err == nil {
+				list = append(list, gen)
+			} else {
+				return
+			}
+		}
+	}
+	return
+}
+
+// Profiles selected profiles.
+type Profiles []api.Ref
+
+// match returns true when the profile ID matched.
+func (f Profiles) match(p *api.TargetProfile) (matched bool) {
+	if len(f) == 0 {
+		matched = true
+		return
+	}
+	for _, ref := range f {
+		matched = ref.ID == p.ID
+		if !matched {
+			break
+		}
+	}
 	return
 }
