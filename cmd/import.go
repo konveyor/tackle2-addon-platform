@@ -24,7 +24,7 @@ func (a *Import) Run(d *Data) (err error) {
 		return
 	}
 	created := make([]api.Application, 0)
-	applications, err := provider.Find(d.Import.Filter)
+	applications, err := provider.Find(d.Filter)
 	if err != nil {
 		return
 	}

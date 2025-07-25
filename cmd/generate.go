@@ -56,7 +56,7 @@ func (a *Generate) Run(d *Data) (err error) {
 	assetDir := path.Join(
 		AssetDir,
 		a.application.Assets.Path)
-	generators, err := a.generators(d.AssetGen.Profiles)
+	generators, err := a.generators(d.Profiles)
 	if err != nil {
 		return
 	}
@@ -74,7 +74,7 @@ func (a *Generate) Run(d *Data) (err error) {
 		var names []string
 		names, err = a.generate(
 			gen,
-			d.AssetGen.Params,
+			d.Params,
 			templateDir,
 			assetDir)
 		if err != nil {

@@ -28,17 +28,13 @@ type Data struct {
 	// Action (fetch|import|generate)
 	Action string `json:"action"`
 	// Import
-	Import struct {
-		// Filter applications.
-		Filter api.Map `json:"filter"`
-	}
-	// AssetGen (asset)
-	AssetGen struct {
-		// Profiles
-		Profiles Profiles `json:"profiles"`
-		// Params generator params
-		Params api.Map `json:"parameters"`
-	}
+	// Filter applications.
+	Filter api.Map `json:"filter"`
+	// Asset Generation
+	// Profiles
+	Profiles Profiles `json:"profiles"`
+	// Params generator params
+	Params api.Map `json:"params"`
 }
 
 // main
