@@ -4,6 +4,7 @@ import (
 	"os"
 	"path"
 	"strconv"
+	"strings"
 
 	"github.com/konveyor/tackle2-addon/repository"
 	"github.com/konveyor/tackle2-hub/api"
@@ -55,7 +56,7 @@ func (a *Generate) Run(d *Data) (err error) {
 	assetDir := path.Join(
 		AssetDir,
 		a.application.Assets.Path)
-	generators, err := a.generators(d.Profiles)
+	generators, err := a.generators(d.AssetGen.Profiles)
 	if err != nil {
 		return
 	}
@@ -71,7 +72,11 @@ func (a *Generate) Run(d *Data) (err error) {
 			return
 		}
 		var names []string
-		names, err = a.generate(gen, templateDir, assetDir)
+		names, err = a.generate(
+			gen,
+			d.AssetGen.Params,
+			templateDir,
+			assetDir)
 		if err != nil {
 			return
 		}
@@ -93,10 +98,14 @@ func (a *Generate) Run(d *Data) (err error) {
 // generate executes a generator.
 func (a *Generate) generate(
 	gen *api.Generator,
+	params api.Map,
 	templateDir string,
 	assetDir string) (paths []string, err error) {
 	//
-	values, err := a.values(gen)
+	values, err := a.values(gen.Values, params)
+	if err != nil {
+		return
+	}
 	if err != nil {
 		return
 	}
@@ -142,7 +151,7 @@ func (a *Generate) writeAsset(assetPath, content string) (err error) {
 }
 
 // values returns the `values` file passed to the generator.
-func (a *Generate) values(gen *api.Generator) (values api.Map, err error) {
+func (a *Generate) values(injected ...api.Map) (values api.Map, err error) {
 	tags := []api.Tag{}
 	for _, ref := range a.application.Tags {
 		var tag *api.Tag
@@ -156,6 +165,9 @@ func (a *Generate) values(gen *api.Generator) (values api.Map, err error) {
 	manifest, err := mapi.Get()
 	if err != nil {
 		return
+	}
+	for _, d := range injected {
+		a.inject(manifest.Content, d)
 	}
 	values = api.Map{
 		"manifest": manifest.Content,
@@ -228,6 +240,32 @@ func (a *Generate) generators(requested Profiles) (list []*api.Generator, err er
 	return
 }
 
+// inject nodes into the manifest.
+func (a *Generate) inject(manifest, d api.Map) {
+	if d == nil {
+		return
+	}
+	for k, value := range d {
+		part := strings.Split(k, ".")
+		leaf := len(part) - 1
+		node := Map(manifest)
+		for i := range part {
+			p := part[i]
+			if i == leaf {
+				node[p] = value
+				break
+			}
+			v, found := node[p]
+			nested, cast := v.(Map)
+			if !found || !cast {
+				nested = make(Map)
+				node[p] = nested
+			}
+			node = nested
+		}
+	}
+}
+
 // Profiles selected profiles.
 type Profiles []api.Ref
 
@@ -245,3 +283,5 @@ func (f Profiles) match(p *api.TargetProfile) (matched bool) {
 	}
 	return
 }
+
+type Map = map[string]any
