@@ -27,10 +27,14 @@ func init() {
 type Data struct {
 	// Action (fetch|import|generate)
 	Action string `json:"action"`
+	// Import
 	// Filter applications.
 	Filter api.Map `json:"filter"`
-	// Profiles used for asset generation.
+	// Asset Generation
+	// Profiles
 	Profiles Profiles `json:"profiles"`
+	// Params generator params
+	Params api.Map `json:"params"`
 }
 
 // main
