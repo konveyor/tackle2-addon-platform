@@ -12,6 +12,7 @@ import (
 
 var (
 	addon       = hub.Addon
+	SourceDir   = ""
 	TemplateDir = ""
 	AssetDir    = ""
 	Dir         = ""
@@ -19,6 +20,7 @@ var (
 
 func init() {
 	Dir, _ = os.Getwd()
+	SourceDir = path.Join(Dir, "source")
 	TemplateDir = path.Join(Dir, "templates")
 	AssetDir = path.Join(Dir, "assets")
 }
@@ -40,6 +42,7 @@ type Data struct {
 // main
 func main() {
 	addon.Run(func() (err error) {
+		addon.Activity("SourceDir: %s", SourceDir)
 		addon.Activity("TemplateDir: %s", TemplateDir)
 		addon.Activity("AssetDir: %s", AssetDir)
 		//
@@ -51,9 +54,10 @@ func main() {
 		}
 		//
 		// Create directories.
-		for _, dir := range []string{TemplateDir, AssetDir} {
+		for _, dir := range []string{SourceDir, TemplateDir, AssetDir} {
 			err = nas.MkDir(dir, 0755)
 			if err != nil {
+				err = Wrap(err)
 				return
 			}
 		}

@@ -1,8 +1,13 @@
 package helm
 
 import (
+	liberr "github.com/jortel/go-utils/error"
 	hp "github.com/konveyor/asset-generation/pkg/providers/generators/helm"
 	"github.com/konveyor/tackle2-hub/api"
+)
+
+var (
+	Wrap = liberr.Wrap
 )
 
 type Files = map[string]string
@@ -22,6 +27,7 @@ func (g *Engine) Generate(templateDir string, values api.Map) (files Files, err 
 	provider := hp.New(config)
 	files, err = provider.Generate()
 	if err != nil {
+		err = Wrap(err)
 		return
 	}
 	return
