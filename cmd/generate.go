@@ -358,6 +358,11 @@ func (a *Generate) manifest() (manifest *api.Manifest, err error) {
 	file := path.Join(sourceDir, "manifest.yaml")
 	f, err := os.Open(file)
 	if err != nil {
+		if os.IsNotExist(err) {
+			err = &ManifestError{}
+		} else {
+			err = Wrap(err)
+		}
 		return
 	}
 	defer func() {
@@ -366,13 +371,6 @@ func (a *Generate) manifest() (manifest *api.Manifest, err error) {
 	manifest = &api.Manifest{}
 	decoder := yaml.NewDecoder(f)
 	err = decoder.Decode(&manifest.Content)
-	if err != nil {
-		if os.IsNotExist(err) {
-			err = &ManifestError{}
-		} else {
-			err = Wrap(err)
-		}
-	}
 	return
 }
 
