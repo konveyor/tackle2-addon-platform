@@ -33,7 +33,7 @@ func (m *SourceRepoError) Error() (s string) {
 }
 
 func (e *SourceRepoError) Is(err error) (matched bool) {
-	var inst *AssetRepoError
+	var inst *SourceRepoError
 	matched = errors.As(err, &inst)
 	return
 }
