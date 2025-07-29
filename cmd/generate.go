@@ -26,7 +26,7 @@ type Generate struct {
 // - for each associated generator:
 //   - fetch template repository.
 //   - build values file.
-//   - generate
+//   - generate assets.
 //   - write files into asset repository.
 //
 // - commit asset repository.
