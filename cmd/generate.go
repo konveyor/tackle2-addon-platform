@@ -40,7 +40,10 @@ func (a *Generate) Run(d *Data) (err error) {
 		a.application.ID,
 		a.application.Name)
 	if a.application.Assets == nil {
-		err = Wrap(&AssetRepoError{})
+		err = Wrap(
+			&RepositoryNotDefined{
+				Role: "Assets",
+			})
 		return
 	}
 	identity, err := a.selectIdentity("asset")
@@ -180,7 +183,10 @@ func (a *Generate) values(injected ...api.Map) (values api.Map, err error) {
 // fetchRepository gets source repository.
 func (a *Generate) fetchRepository() (sourceDir string, err error) {
 	if a.application.Repository == nil {
-		err = Wrap(&SourceRepoError{})
+		err = Wrap(
+			&RepositoryNotDefined{
+				Role: "Source",
+			})
 		return
 	}
 	var options []any
@@ -345,10 +351,13 @@ func (a *Generate) manifest() (manifest *api.Manifest, err error) {
 			return
 		}
 	} else {
+		addon.Activity(
+			"[Gen] Using manifest id=%d",
+			manifest.ID)
 		return
 	}
 	if a.application.Repository == nil {
-		err = &ManifestError{}
+		err = &ManifestNotFound{}
 		return
 	}
 	sourceDir, err := a.fetchRepository()
@@ -359,7 +368,7 @@ func (a *Generate) manifest() (manifest *api.Manifest, err error) {
 	f, err := os.Open(file)
 	if err != nil {
 		if os.IsNotExist(err) {
-			err = &ManifestError{}
+			err = &ManifestNotFound{}
 		} else {
 			err = Wrap(err)
 		}
@@ -371,6 +380,11 @@ func (a *Generate) manifest() (manifest *api.Manifest, err error) {
 	manifest = &api.Manifest{}
 	decoder := yaml.NewDecoder(f)
 	err = decoder.Decode(&manifest.Content)
+	if err == nil {
+		addon.Activity(
+			"[Gen] Using manifest at: ",
+			file)
+	}
 	return
 }
 

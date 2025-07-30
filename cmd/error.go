@@ -10,58 +10,45 @@ var (
 	Wrap = liberr.Wrap
 )
 
-type ManifestError struct {
+type ManifestNotFound struct {
 }
 
-func (m *ManifestError) Error() (s string) {
+func (m *ManifestNotFound) Error() (s string) {
 	s = "No manifest associated with the application or found in the source repository."
 	return
 }
 
-func (e *ManifestError) Is(err error) (matched bool) {
-	var inst *ManifestError
+func (e *ManifestNotFound) Is(err error) (matched bool) {
+	var inst *ManifestNotFound
 	matched = errors.As(err, &inst)
 	return
 }
 
-type SourceRepoError struct {
+type RepositoryNotDefined struct {
+	Role string
 }
 
-func (m *SourceRepoError) Error() (s string) {
-	s = "Application source repository not defined."
+func (m *RepositoryNotDefined) Error() (s string) {
+	s = m.Role + " repository not defined."
 	return
 }
 
-func (e *SourceRepoError) Is(err error) (matched bool) {
-	var inst *SourceRepoError
+func (e *RepositoryNotDefined) Is(err error) (matched bool) {
+	var inst *RepositoryNotDefined
 	matched = errors.As(err, &inst)
 	return
 }
 
-type AssetRepoError struct {
+type PlatformNotDefined struct {
 }
 
-func (m *AssetRepoError) Error() (s string) {
-	s = "Application asset repository not defined."
+func (m *PlatformNotDefined) Error() (s string) {
+	s = "Application not associated with any platform."
 	return
 }
 
-func (e *AssetRepoError) Is(err error) (matched bool) {
-	var inst *AssetRepoError
-	matched = errors.As(err, &inst)
-	return
-}
-
-type PlatformError struct {
-}
-
-func (m *PlatformError) Error() (s string) {
-	s = "Application not associated with platform."
-	return
-}
-
-func (e *PlatformError) Is(err error) (matched bool) {
-	var inst *PlatformError
+func (e *PlatformNotDefined) Is(err error) (matched bool) {
+	var inst *PlatformNotDefined
 	matched = errors.As(err, &inst)
 	return
 }
