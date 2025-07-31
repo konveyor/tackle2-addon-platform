@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"os"
 	"path"
 	"strconv"
@@ -8,9 +9,12 @@ import (
 
 	"github.com/konveyor/tackle2-addon/repository"
 	"github.com/konveyor/tackle2-hub/api"
+	"github.com/konveyor/tackle2-hub/binding"
+	yaml "sigs.k8s.io/yaml/goyaml.v3"
 )
 
 type Files = map[string]string
+type Map = map[string]any
 
 // Generate assets action.
 type Generate struct {
@@ -21,7 +25,8 @@ type Generate struct {
 // - fetch the application asset repository.
 // - for each associated generator:
 //   - fetch template repository.
-//   - generate
+//   - build values file.
+//   - generate assets.
 //   - write files into asset repository.
 //
 // - commit asset repository.
@@ -35,7 +40,10 @@ func (a *Generate) Run(d *Data) (err error) {
 		a.application.ID,
 		a.application.Name)
 	if a.application.Assets == nil {
-		addon.Failed("[Gen] asset repository not defined.")
+		err = Wrap(
+			&RepositoryNotDefined{
+				Role: "Assets",
+			})
 		return
 	}
 	identity, err := a.selectIdentity("asset")
@@ -135,6 +143,7 @@ func (a *Generate) generate(
 func (a *Generate) writeAsset(assetPath, content string) (err error) {
 	f, err := os.Create(assetPath)
 	if err != nil {
+		err = Wrap(err)
 		return
 	}
 	defer func() {
@@ -142,6 +151,7 @@ func (a *Generate) writeAsset(assetPath, content string) (err error) {
 	}()
 	_, err = f.Write([]byte(content))
 	if err != nil {
+		err = Wrap(err)
 		return
 	}
 	addon.Activity(
@@ -152,17 +162,11 @@ func (a *Generate) writeAsset(assetPath, content string) (err error) {
 
 // values returns the `values` file passed to the generator.
 func (a *Generate) values(injected ...api.Map) (values api.Map, err error) {
-	tags := []api.Tag{}
-	for _, ref := range a.application.Tags {
-		var tag *api.Tag
-		tag, err = addon.Tag.Get(ref.ID)
-		if err != nil {
-			return
-		}
-		tags = append(tags, *tag)
+	tags, err := a.tags()
+	if err != nil {
+		return
 	}
-	mapi := addon.Application.Manifest(a.application.ID)
-	manifest, err := mapi.Get()
+	manifest, err := a.manifest()
 	if err != nil {
 		return
 	}
@@ -176,6 +180,48 @@ func (a *Generate) values(injected ...api.Map) (values api.Map, err error) {
 	return
 }
 
+// fetchRepository gets source repository.
+func (a *Generate) fetchRepository() (sourceDir string, err error) {
+	if a.application.Repository == nil {
+		err = Wrap(
+			&RepositoryNotDefined{
+				Role: "Source",
+			})
+		return
+	}
+	var options []any
+	idapi := addon.Application.Identity(a.application.ID)
+	identity, found, err := idapi.Find("source")
+	if err != nil {
+		return
+	}
+	if found {
+		options = append(options, identity)
+	}
+	sourceDir = path.Join(
+		SourceDir,
+		strings.Split(
+			path.Base(
+				a.application.Repository.URL),
+			".")[0])
+	var rp repository.SCM
+	rp, err = repository.New(
+		sourceDir,
+		a.application.Repository,
+		options...)
+	if err != nil {
+		return
+	}
+	err = rp.Fetch()
+	if err != nil {
+		return
+	}
+	sourceDir = path.Join(
+		sourceDir,
+		a.application.Repository.Path)
+	return
+}
+
 // fetchTemplates clones the repository associated with the generator.
 func (a *Generate) fetchTemplates(gen *api.Generator) (templateDir string, err error) {
 	genId := strconv.Itoa(int(gen.ID))
@@ -184,6 +230,7 @@ func (a *Generate) fetchTemplates(gen *api.Generator) (templateDir string, err e
 		genId)
 	err = os.MkdirAll(templateDir, 0755)
 	if err != nil {
+		err = Wrap(err)
 		return
 	}
 	template, err := repository.New(
@@ -266,6 +313,81 @@ func (a *Generate) inject(manifest, d api.Map) {
 	}
 }
 
+// tags returns an array of tags.
+// format: category=tag.
+func (a *Generate) tags() (tags []string, err error) {
+	catList, err := addon.TagCategory.List()
+	if err != nil {
+		return
+	}
+	catMap := make(map[uint]string)
+	for _, cat := range catList {
+		catMap[cat.ID] = cat.Name
+	}
+	for _, ref := range a.application.Tags {
+		var tag *api.Tag
+		tag, err = addon.Tag.Get(ref.ID)
+		if err != nil {
+			return
+		}
+		tags = append(
+			tags,
+			strings.Join(
+				[]string{
+					catMap[tag.Category.ID],
+					tag.Name},
+				"="))
+	}
+	return
+}
+
+// manifest returns the application manifest.
+// Fallback: A file named: manifest.yaml in the source repository.
+func (a *Generate) manifest() (manifest *api.Manifest, err error) {
+	mapi := addon.Application.Manifest(a.application.ID)
+	manifest, err = mapi.Get()
+	if err != nil {
+		if !errors.Is(err, &binding.NotFound{}) {
+			return
+		}
+	} else {
+		addon.Activity(
+			"[Gen] Using manifest id=%d",
+			manifest.ID)
+		return
+	}
+	if a.application.Repository == nil {
+		err = &ManifestNotFound{}
+		return
+	}
+	sourceDir, err := a.fetchRepository()
+	if err != nil {
+		return
+	}
+	file := path.Join(sourceDir, "manifest.yaml")
+	f, err := os.Open(file)
+	if err != nil {
+		if os.IsNotExist(err) {
+			err = &ManifestNotFound{}
+		} else {
+			err = Wrap(err)
+		}
+		return
+	}
+	defer func() {
+		_ = f.Close()
+	}()
+	manifest = &api.Manifest{}
+	decoder := yaml.NewDecoder(f)
+	err = decoder.Decode(&manifest.Content)
+	if err == nil {
+		addon.Activity(
+			"[Gen] Using manifest at: ",
+			file)
+	}
+	return
+}
+
 // Profiles selected profiles.
 type Profiles []api.Ref
 
@@ -283,5 +405,3 @@ func (f Profiles) match(p *api.TargetProfile) (matched bool) {
 	}
 	return
 }
-
-type Map = map[string]any

@@ -9,7 +9,6 @@ import (
 	"github.com/konveyor/tackle2-hub/api"
 	"github.com/konveyor/tackle2-hub/api/jsd"
 	"github.com/konveyor/tackle2-hub/migration/json"
-	"github.com/pkg/errors"
 )
 
 var (
@@ -30,7 +29,7 @@ func (p *Provider) Use(identity *api.Identity) {
 // Fetch the manifest for the application.
 func (p *Provider) Fetch(application *api.Application) (m *api.Manifest, err error) {
 	if application.Coordinates == nil {
-		err = errors.Errorf("Coordinates required.")
+		err = &CoordinatesError{}
 		return
 	}
 	coordinates := Coordinates{}
@@ -48,6 +47,7 @@ func (p *Provider) Fetch(application *api.Application) (m *api.Manifest, err err
 	}
 	manifest, err := client.Discover(ref)
 	if err != nil {
+		err = Wrap(err)
 		return
 	}
 	m = &api.Manifest{}
@@ -113,6 +113,7 @@ func (p *Provider) client(spaces ...string) (client *cfp.CloudFoundryProvider, e
 	}
 	cfConfig, err := cf.New(p.URL, options...)
 	if err != nil {
+		err = Wrap(err)
 		return
 	}
 	pConfig := &cfp.Config{
@@ -121,6 +122,7 @@ func (p *Provider) client(spaces ...string) (client *cfp.CloudFoundryProvider, e
 	}
 	client, err = cfp.New(pConfig, &addon.Log, true)
 	if err != nil {
+		err = Wrap(err)
 		return
 	}
 	return
