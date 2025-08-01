@@ -174,6 +174,15 @@ func (a *Generate) values(injected ...api.Map) (values api.Map, err error) {
 		a.inject(manifest.Content, d)
 	}
 	values = api.Map{
+		"application": api.Map{
+			"name":            a.application.Name,
+			"owner":           a.refName(a.application.Owner),
+			"contributors":    a.refNames(a.application.Contributors),
+			"archetypes":      a.refNames(a.application.Archetypes),
+			"businessService": a.refName(a.application.BusinessService),
+			"repository":      a.repoMap(a.application.Repository),
+			"binary":          a.application.Binary,
+		},
 		"manifest": manifest.Content,
 		"tags":     tags,
 	}
@@ -385,6 +394,32 @@ func (a *Generate) manifest() (manifest *api.Manifest, err error) {
 			"[Gen] Using manifest at: ",
 			file)
 	}
+	return
+}
+
+// refName returns the referenced name.
+func (a *Generate) refName(ref *api.Ref) (n string) {
+	if ref != nil {
+		n = ref.Name
+	}
+	return
+}
+
+// refNames returns the referenced names.
+func (a *Generate) refNames(refs []api.Ref) (names []string) {
+	for _, ref := range refs {
+		names = append(names, ref.Name)
+	}
+	return
+}
+
+// repoMap returns a Map representation of a repository with lowercase keys.
+func (a *Generate) repoMap(r *api.Repository) (m *api.Map) {
+	if r == nil {
+		return
+	}
+	b, _ := yaml.Marshal(r)
+	_ = yaml.Unmarshal(b, &m)
 	return
 }
 
