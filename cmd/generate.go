@@ -179,7 +179,7 @@ func (a *Generate) values(injected ...api.Map) (values api.Map, err error) {
 		"contributors":    a.refNames(a.application.Contributors),
 		"archetypes":      a.refNames(a.application.Archetypes),
 		"businessService": a.refName(a.application.BusinessService),
-		"repository":      a.repoMap(a.application.Repository),
+		"repository":      a.application.Repository,
 		"binary":          a.application.Binary,
 	}
 	values = api.Map{
@@ -399,9 +399,9 @@ func (a *Generate) manifest() (manifest *api.Manifest, err error) {
 }
 
 // refName returns the referenced name.
-func (a *Generate) refName(ref *api.Ref) (n string) {
+func (a *Generate) refName(ref *api.Ref) (n *string) {
 	if ref != nil {
-		n = ref.Name
+		n = &ref.Name
 	}
 	return
 }
@@ -411,23 +411,6 @@ func (a *Generate) refNames(refs []api.Ref) (names []string) {
 	for _, ref := range refs {
 		names = append(names, ref.Name)
 	}
-	return
-}
-
-// repoMap returns a map of a repository.
-func (a *Generate) repoMap(r *api.Repository) (m api.Map) {
-	m = api.Map{
-		"kind":   "",
-		"url":    "",
-		"branch": "",
-		"tag":    "",
-		"path":   "",
-	}
-	if r == nil {
-		return
-	}
-	b, _ := yaml.Marshal(r)
-	_ = yaml.Unmarshal(b, &m)
 	return
 }
 
