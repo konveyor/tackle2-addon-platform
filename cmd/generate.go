@@ -180,7 +180,7 @@ func (a *Generate) values(injected ...api.Map) (values api.Map, err error) {
 			"contributors":    a.refNames(a.application.Contributors),
 			"archetypes":      a.refNames(a.application.Archetypes),
 			"businessService": a.refName(a.application.BusinessService),
-			"repository":      a.application.Repository,
+			"repository":      a.repoMap(a.application.Repository),
 			"binary":          a.application.Binary,
 		},
 		"manifest": manifest.Content,
@@ -410,6 +410,16 @@ func (a *Generate) refNames(refs []api.Ref) (names []string) {
 	for _, ref := range refs {
 		names = append(names, ref.Name)
 	}
+	return
+}
+
+// repoMap returns a Map representation of a repository with lowercase keys.
+func (a *Generate) repoMap(r *api.Repository) (m *api.Map) {
+	if r == nil {
+		return
+	}
+	b, _ := yaml.Marshal(r)
+	_ = yaml.Unmarshal(b, &m)
 	return
 }
 
