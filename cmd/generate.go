@@ -173,19 +173,18 @@ func (a *Generate) values(injected ...api.Map) (values api.Map, err error) {
 	for _, d := range injected {
 		a.inject(manifest.Content, d)
 	}
-	application := api.Map{
-		"name":            a.application.Name,
-		"owner":           a.refName(a.application.Owner),
-		"contributors":    a.refNames(a.application.Contributors),
-		"archetypes":      a.refNames(a.application.Archetypes),
-		"businessService": a.refName(a.application.BusinessService),
-		"repository":      a.application.Repository,
-		"binary":          a.application.Binary,
-	}
 	values = api.Map{
-		"application": application,
-		"manifest":    manifest.Content,
-		"tags":        tags,
+		"application": api.Map{
+			"name":            a.application.Name,
+			"owner":           a.refName(a.application.Owner),
+			"contributors":    a.refNames(a.application.Contributors),
+			"archetypes":      a.refNames(a.application.Archetypes),
+			"businessService": a.refName(a.application.BusinessService),
+			"repository":      a.application.Repository,
+			"binary":          a.application.Binary,
+		},
+		"manifest": manifest.Content,
+		"tags":     tags,
 	}
 	return
 }
