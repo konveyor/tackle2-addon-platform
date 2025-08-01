@@ -399,9 +399,9 @@ func (a *Generate) manifest() (manifest *api.Manifest, err error) {
 }
 
 // refName returns the referenced name.
-func (a *Generate) refName(ref *api.Ref) (n *string) {
+func (a *Generate) refName(ref *api.Ref) (n string) {
 	if ref != nil {
-		n = &ref.Name
+		n = ref.Name
 	}
 	return
 }
