@@ -173,9 +173,19 @@ func (a *Generate) values(injected ...api.Map) (values api.Map, err error) {
 	for _, d := range injected {
 		a.inject(manifest.Content, d)
 	}
+	application := api.Map{
+		"name":            a.application.Name,
+		"owner":           a.name(a.application.Owner),
+		"contributors":    a.names(a.application.Contributors),
+		"archetypes":      a.names(a.application.Archetypes),
+		"businessService": a.name(a.application.BusinessService),
+		"binary":          a.application.Binary,
+		"repository":      a.application.Repository,
+	}
 	values = api.Map{
-		"manifest": manifest.Content,
-		"tags":     tags,
+		"application": application,
+		"manifest":    manifest.Content,
+		"tags":        tags,
 	}
 	return
 }
@@ -384,6 +394,20 @@ func (a *Generate) manifest() (manifest *api.Manifest, err error) {
 		addon.Activity(
 			"[Gen] Using manifest at: ",
 			file)
+	}
+	return
+}
+
+func (a *Generate) name(ref *api.Ref) (n string) {
+	if ref != nil {
+		n = ref.Name
+	}
+	return
+}
+
+func (a *Generate) names(refs []api.Ref) (names []string) {
+	for _, ref := range refs {
+		names = append(names, ref.Name)
 	}
 	return
 }
