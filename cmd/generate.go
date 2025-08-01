@@ -423,7 +423,7 @@ func (a *Generate) repoMap(r *api.Repository) (m api.Map) {
 		"tag":    "",
 		"path":   "",
 	}
-	if r != nil {
+	if r == nil {
 		return
 	}
 	b, _ := yaml.Marshal(r)
