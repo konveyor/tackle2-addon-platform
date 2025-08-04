@@ -162,8 +162,8 @@ github.com/konveyor/asset-generation v0.1.4 h1:mLTl1XHJpY+ikwAGkO3NzAacRHf2BKmRS
 github.com/konveyor/asset-generation v0.1.4/go.mod h1:ZSxFQ/aT7B1HtSqc2IQ+QdhCCcZMOqejRPukuxJXl7s=
 github.com/konveyor/tackle2-addon v0.8.0-alpha.1 h1:KpeGiJC/YQOUkvp6tOahwz8P/B98nt7oqz/YCnbHK10=
 github.com/konveyor/tackle2-addon v0.8.0-alpha.1/go.mod h1:mITXAU1o/8ZdBoGacaTZxXORfFe1q2S74W9RfTHHm7A=
-github.com/konveyor/tackle2-hub v0.8.0-alpha.1.0.20250721183110-637c635410a6 h1:Ct12T8sq62ICDBe2GDQnzx+e3OaFVWGB8Kq4wjBFh44=
-github.com/konveyor/tackle2-hub v0.8.0-alpha.1.0.20250721183110-637c635410a6/go.mod h1:GRxhOKLZVtgT87F9DImg2DZVbvmiF+rnZpAE8yHNDPg=
+github.com/konveyor/tackle2-hub v0.8.0-alpha.1.0.20250728204919-ea399b9eba4a h1:1dPvQd3aKBPfXEDka+l0UDkfUWHmUVfC6/0OvkuPors=
+github.com/konveyor/tackle2-hub v0.8.0-alpha.1.0.20250728204919-ea399b9eba4a/go.mod h1:GRxhOKLZVtgT87F9DImg2DZVbvmiF+rnZpAE8yHNDPg=
 github.com/kr/pretty v0.2.1/go.mod h1:ipq/a2n7PKx3OHsz4KJII5eveXtPO4qwEXGdVfWzfnI=
 github.com/kr/pretty v0.3.1 h1:flRD4NNwYAUpkphVc1HcthR4KEIFJ65n8Mw5qdRn3LE=
 github.com/kr/pretty v0.3.1/go.mod h1:hoEshYVHaxMs3cyo3Yncou5ZscifuDolrwPKZanG3xk=
