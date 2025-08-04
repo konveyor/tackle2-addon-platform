@@ -110,7 +110,7 @@ func (a *Generate) generate(
 	templateDir string,
 	assetDir string) (paths []string, err error) {
 	//
-	values, err := a.values(gen.Values, params)
+	values, err := a.values(gen, params)
 	if err != nil {
 		return
 	}
@@ -154,14 +154,18 @@ func (a *Generate) writeAsset(assetPath, content string) (err error) {
 		err = Wrap(err)
 		return
 	}
-	addon.Activity(
-		"[Gen] created: %s",
-		f.Name())
+	_ = f.Close()
+	asset, err := addon.File.Post(assetPath)
+	if err != nil {
+		return
+	}
+	addon.Attach(asset)
+	addon.Activity("[Gen] created: %s", f.Name())
 	return
 }
 
 // values returns the `values` file passed to the generator.
-func (a *Generate) values(injected ...api.Map) (values api.Map, err error) {
+func (a *Generate) values(gen *api.Generator, params api.Map) (values api.Map, err error) {
 	tags, err := a.tags()
 	if err != nil {
 		return
@@ -170,9 +174,8 @@ func (a *Generate) values(injected ...api.Map) (values api.Map, err error) {
 	if err != nil {
 		return
 	}
-	for _, d := range injected {
-		a.inject(manifest.Content, d)
-	}
+	a.inject(manifest.Content, gen.Values)
+	a.inject(manifest.Content, params)
 	values = api.Map{
 		"application": api.Map{
 			"name":            a.application.Name,
@@ -186,6 +189,42 @@ func (a *Generate) values(injected ...api.Map) (values api.Map, err error) {
 		"manifest": manifest.Content,
 		"tags":     tags,
 	}
+	err = a.attachValues(gen, values)
+	return
+}
+
+// attachValues attaches values file passed to the generator.
+func (a *Generate) attachValues(gen *api.Generator, values api.Map) (err error) {
+	genId := strconv.Itoa(int(gen.ID))
+	name := genId + "-values.yaml-"
+	tf, err := os.CreateTemp("", name)
+	if err != nil {
+		err = Wrap(err)
+		return
+	}
+	en := yaml.NewEncoder(tf)
+	defer func() {
+		_ = tf.Close()
+		_ = os.Remove(tf.Name())
+		_ = en.Close()
+	}()
+	_, _ = tf.WriteString("---\n")
+	_, _ = tf.WriteString("# generator (id=")
+	_, _ = tf.WriteString(genId)
+	_, _ = tf.WriteString(") ")
+	_, _ = tf.WriteString(gen.Name)
+	_, _ = tf.WriteString("\n")
+	err = en.Encode(values)
+	if err != nil {
+		err = Wrap(err)
+		return
+	}
+	_ = tf.Close()
+	f, err := addon.File.Post(tf.Name())
+	if err != nil {
+		return
+	}
+	addon.Attach(f)
 	return
 }
 
