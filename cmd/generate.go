@@ -75,7 +75,7 @@ func (a *Generate) Run(d *Data) (err error) {
 			gen.ID,
 			gen.Name)
 		var templateDir string
-		templateDir, err = a.fetchTemplates(gen)
+		templateDir, err = a.cloneTemplates(gen)
 		if err != nil {
 			return
 		}
@@ -154,12 +154,6 @@ func (a *Generate) writeAsset(assetPath, content string) (err error) {
 		err = Wrap(err)
 		return
 	}
-	_ = f.Close()
-	asset, err := addon.File.Post(assetPath)
-	if err != nil {
-		return
-	}
-	addon.Attach(asset)
 	addon.Activity("[Gen] created: %s", f.Name())
 	return
 }
@@ -170,26 +164,23 @@ func (a *Generate) values(gen *api.Generator, params api.Map) (values api.Map, e
 	if err != nil {
 		return
 	}
-	manifest, err := a.manifest()
+	redacted, manifest, err := a.manifest()
 	if err != nil {
 		return
 	}
+	a.inject(redacted.Content, gen.Values)
+	a.inject(redacted.Content, params)
 	a.inject(manifest.Content, gen.Values)
 	a.inject(manifest.Content, params)
-	values = api.Map{
-		"application": api.Map{
-			"name":            a.application.Name,
-			"owner":           a.refName(a.application.Owner),
-			"contributors":    a.refNames(a.application.Contributors),
-			"archetypes":      a.refNames(a.application.Archetypes),
-			"businessService": a.refName(a.application.BusinessService),
-			"repository":      a.repoMap(a.application.Repository),
-			"binary":          a.application.Binary,
-		},
-		"manifest": manifest.Content,
-		"tags":     tags,
-	}
+	v := Values{}
+	v.with(&a.application, redacted, tags)
+	values = v.asMap()
 	err = a.attachValues(gen, values)
+	if err != nil {
+		return
+	}
+	v.Manifest = manifest.Content
+	values = v.asMap()
 	return
 }
 
@@ -228,8 +219,8 @@ func (a *Generate) attachValues(gen *api.Generator, values api.Map) (err error) 
 	return
 }
 
-// fetchRepository gets source repository.
-func (a *Generate) fetchRepository() (sourceDir string, err error) {
+// cloneCode gets code repository.
+func (a *Generate) cloneCode() (sourceDir string, err error) {
 	if a.application.Repository == nil {
 		err = Wrap(
 			&RepositoryNotDefined{
@@ -270,8 +261,8 @@ func (a *Generate) fetchRepository() (sourceDir string, err error) {
 	return
 }
 
-// fetchTemplates clones the repository associated with the generator.
-func (a *Generate) fetchTemplates(gen *api.Generator) (templateDir string, err error) {
+// cloneTemplates clones the repository associated with the generator.
+func (a *Generate) cloneTemplates(gen *api.Generator) (templateDir string, err error) {
 	genId := strconv.Itoa(int(gen.ID))
 	templateDir = path.Join(
 		TemplateDir,
@@ -390,25 +381,37 @@ func (a *Generate) tags() (tags []string, err error) {
 }
 
 // manifest returns the application manifest.
-// Fallback: A file named: manifest.yaml in the source repository.
-func (a *Generate) manifest() (manifest *api.Manifest, err error) {
+// fallback: A file named: manifest.yaml in the source repository.
+func (a *Generate) manifest() (redacted, manifest *api.Manifest, err error) {
 	mapi := addon.Application.Manifest(a.application.ID)
-	manifest, err = mapi.Get()
+	redacted, err = mapi.Get()
 	if err != nil {
-		if !errors.Is(err, &binding.NotFound{}) {
-			return
+		if errors.Is(err, &binding.NotFound{}) {
+			redacted, err = a.userManifest()
+			manifest = redacted
 		}
-	} else {
-		addon.Activity(
-			"[Gen] Using manifest id=%d",
-			manifest.ID)
 		return
 	}
+	manifest, err = addon.Manifest.Get(
+		redacted.ID,
+		binding.Param{Key: api.Injected, Value: "1"},
+		binding.Param{Key: api.Decrypted, Value: "1"})
+	if err != nil {
+		return
+	}
+	addon.Activity(
+		"[Gen] Using manifest id=%d",
+		manifest.ID)
+	return
+}
+
+// userManifest returns the manifest contained in the repository.
+func (a *Generate) userManifest() (manifest *api.Manifest, err error) {
 	if a.application.Repository == nil {
 		err = &ManifestNotFound{}
 		return
 	}
-	sourceDir, err := a.fetchRepository()
+	sourceDir, err := a.cloneCode()
 	if err != nil {
 		return
 	}
@@ -436,32 +439,6 @@ func (a *Generate) manifest() (manifest *api.Manifest, err error) {
 	return
 }
 
-// refName returns the referenced name.
-func (a *Generate) refName(ref *api.Ref) (n string) {
-	if ref != nil {
-		n = ref.Name
-	}
-	return
-}
-
-// refNames returns the referenced names.
-func (a *Generate) refNames(refs []api.Ref) (names []string) {
-	for _, ref := range refs {
-		names = append(names, ref.Name)
-	}
-	return
-}
-
-// repoMap returns a Map representation of a repository with lowercase keys.
-func (a *Generate) repoMap(r *api.Repository) (m *api.Map) {
-	if r == nil {
-		return
-	}
-	b, _ := yaml.Marshal(r)
-	_ = yaml.Unmarshal(b, &m)
-	return
-}
-
 // Profiles selected profiles.
 type Profiles []api.Ref
 
@@ -477,5 +454,53 @@ func (f Profiles) match(p *api.TargetProfile) (matched bool) {
 			break
 		}
 	}
+	return
+}
+
+// Values used by templates.
+type Values struct {
+	Application struct {
+		Name            string
+		Owner           string
+		Contributors    []string
+		Archetypes      []string
+		BusinessService string `yaml:"businessService"`
+		Repository      *api.Repository
+		Binary          string
+	}
+	Manifest api.Map
+	Tags     []string
+}
+
+// with populates using the specified resources.
+func (v *Values) with(a *api.Application, m *api.Manifest, tags []string) {
+	app := &v.Application
+	app.Name = a.Name
+	if a.Owner != nil {
+		app.Owner = a.Owner.Name
+	}
+	for _, ref := range a.Contributors {
+		app.Contributors = append(
+			app.Contributors,
+			ref.Name)
+	}
+	for _, ref := range a.Archetypes {
+		app.Archetypes = append(
+			app.Archetypes,
+			ref.Name)
+	}
+	if a.BusinessService != nil {
+		app.BusinessService = a.BusinessService.Name
+	}
+	app.Repository = a.Repository
+	app.Binary = a.Binary
+	v.Manifest = m.Content
+	v.Tags = tags
+}
+
+// asMap returns an api.Map representation.
+func (v *Values) asMap() (m api.Map) {
+	b, _ := yaml.Marshal(v)
+	_ = yaml.Unmarshal(b, &m)
 	return
 }
