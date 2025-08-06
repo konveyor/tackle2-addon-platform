@@ -52,7 +52,7 @@ func (a *Import) Run(d *Data) (err error) {
 		if err != nil {
 			addon.Errorf(
 				"warn",
-				"[Import] Application: %s, create manifest failed: %s",
+				"[Import] Application: %s, fetch manifest failed: %s",
 				app.Name,
 				err.Error())
 			continue

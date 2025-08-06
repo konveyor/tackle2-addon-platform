@@ -450,7 +450,7 @@ func (f Profiles) match(p *api.TargetProfile) (matched bool) {
 	}
 	for _, ref := range f {
 		matched = ref.ID == p.ID
-		if !matched {
+		if matched {
 			break
 		}
 	}
