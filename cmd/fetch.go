@@ -32,6 +32,9 @@ func (a *Fetch) Run(d *Data) (err error) {
 // fetch manifest.
 func (a *Fetch) fetch(p Provider, app *api.Application) (err error) {
 	manifest, err := p.Fetch(app)
+	if err != nil {
+		return
+	}
 	manifest.Application.ID = app.ID
 	err = addon.Manifest.Create(manifest)
 	if err == nil {

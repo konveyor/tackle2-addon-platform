@@ -57,7 +57,7 @@ func main() {
 		for _, dir := range []string{SourceDir, TemplateDir, AssetDir} {
 			err = nas.MkDir(dir, 0755)
 			if err != nil {
-				err = Wrap(err)
+				err = wrap(err)
 				return
 			}
 		}

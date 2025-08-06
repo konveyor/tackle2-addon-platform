@@ -103,7 +103,7 @@ func (r *BaseAction) selectProvider(kind string) (p Provider, err error) {
 		err = errors.New("platform kind not supported")
 		return
 	}
-	if r.platform.Identity.ID == 0 {
+	if r.platform.Identity == nil || r.platform.Identity.ID == 0 {
 		return
 	}
 	id, err := addon.Identity.Get(r.platform.Identity.ID)

@@ -7,7 +7,7 @@ import (
 )
 
 var (
-	Wrap = liberr.Wrap
+	wrap = liberr.Wrap
 )
 
 type ManifestNotFound struct {
