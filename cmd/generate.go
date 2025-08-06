@@ -33,7 +33,6 @@ type Generate struct {
 //
 // - commit asset repository.
 func (a *Generate) Run(d *Data) (err error) {
-	paths := []string{}
 	err = a.setApplication()
 	if err != nil {
 		return
@@ -67,10 +66,8 @@ func (a *Generate) Run(d *Data) (err error) {
 	assetDir := path.Join(
 		AssetDir,
 		a.application.Assets.Path)
-	files, err := a.purge(assetDir)
-	if err == nil {
-		paths = append(paths, files...)
-	} else {
+	err = a.purge(assetDir)
+	if err != nil {
 		return
 	}
 	generators, err := a.generators(d.Profiles)
@@ -88,21 +85,19 @@ func (a *Generate) Run(d *Data) (err error) {
 			return
 		}
 		if d.Render {
-			files, err = a.render(
+			err = a.render(
 				gen,
 				d.Params,
 				templateDir,
 				assetDir)
 		} else {
-			files, err = a.generate(
+			err = a.generate(
 				gen,
 				d.Params,
 				templateDir,
 				assetDir)
 		}
-		if err == nil {
-			paths = append(paths, files...)
-		} else {
+		if err != nil {
 			return
 		}
 	}
@@ -110,7 +105,7 @@ func (a *Generate) Run(d *Data) (err error) {
 	msg += "Task: id="
 	msg += os.Getenv("TASK")
 	msg += "\n"
-	err = assetRepo.Commit(paths, msg)
+	err = assetRepo.Commit([]string{assetDir}, msg)
 	if err != nil {
 		return
 	}
@@ -118,7 +113,7 @@ func (a *Generate) Run(d *Data) (err error) {
 }
 
 // purge assetDir.
-func (a *Generate) purge(assetDir string) (paths []string, err error) {
+func (a *Generate) purge(assetDir string) (err error) {
 	err = fp.Walk(
 		assetDir,
 		func(entPath string, ent os.FileInfo, nErr error) (err error) {
@@ -134,7 +129,6 @@ func (a *Generate) purge(assetDir string) (paths []string, err error) {
 			if strings.HasPrefix(path.Base(entPath), ".") {
 				return
 			}
-			paths = append(paths, entPath)
 			if ent.IsDir() {
 				err = nas.RmDir(entPath)
 				if err != nil {
@@ -159,38 +153,27 @@ func (a *Generate) purge(assetDir string) (paths []string, err error) {
 }
 
 // generate writes values and template files.
-func (a *Generate) generate(
-	gen *api.Generator,
-	params api.Map,
-	templateDir string,
-	assetDir string) (paths []string, err error) {
-	//
+func (a *Generate) generate(gen *api.Generator, params api.Map, templateDir string, assetDir string) (err error) {
 	values, err := a.values(gen, params)
 	if err != nil {
 		return
 	}
-	files, err := a.writeValues(assetDir, values)
+	err = a.writeValues(assetDir, values)
 	if err != nil {
 		err = wrap(err)
 		return
 	}
-	paths = append(paths, files...)
-	files, err = a.writeTemplates(templateDir, assetDir)
+
+	err = a.writeTemplates(templateDir, assetDir)
 	if err != nil {
 		err = wrap(err)
 		return
 	}
-	paths = append(paths, files...)
 	return
 }
 
 // render the templates using engine.
-func (a *Generate) render(
-	gen *api.Generator,
-	params api.Map,
-	templateDir string,
-	assetDir string) (paths []string, err error) {
-	//
+func (a *Generate) render(gen *api.Generator, params api.Map, templateDir string, assetDir string) (err error) {
 	values, err := a.values(gen, params)
 	if err != nil {
 		return
@@ -226,14 +209,13 @@ func (a *Generate) writeAsset(assetPath, content string) (err error) {
 }
 
 // writeValues writes value.yaml to the assetDir.
-func (a *Generate) writeValues(assetDir string, values api.Map) (paths []string, err error) {
+func (a *Generate) writeValues(assetDir string, values api.Map) (err error) {
 	b, err := yaml.Marshal(values)
 	if err != nil {
 		err = wrap(err)
 		return
 	}
 	assetPath := fp.Join(assetDir, "values.yaml")
-	paths = append(paths, assetDir)
 	err = a.writeAsset(assetPath, string(b))
 	if err != nil {
 		err = wrap(err)
@@ -243,7 +225,7 @@ func (a *Generate) writeValues(assetDir string, values api.Map) (paths []string,
 }
 
 // writeTemplates to the assetDir.
-func (a *Generate) writeTemplates(templateDir, assetDir string) (paths []string, err error) {
+func (a *Generate) writeTemplates(templateDir, assetDir string) (err error) {
 	err = fp.Walk(
 		templateDir,
 		func(entPath string, ent os.FileInfo, nErr error) (err error) {
@@ -253,7 +235,6 @@ func (a *Generate) writeTemplates(templateDir, assetDir string) (paths []string,
 			}
 			assetPath, _ := fp.Rel(templateDir, entPath)
 			assetPath = fp.Join(assetDir, assetPath)
-			paths = append(paths, assetPath)
 			if ent.IsDir() {
 				err = nas.MkDir(assetPath, 0777)
 				if err != nil {
