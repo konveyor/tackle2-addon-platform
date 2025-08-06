@@ -40,7 +40,7 @@ func (a *Generate) Run(d *Data) (err error) {
 		a.application.ID,
 		a.application.Name)
 	if a.application.Assets == nil {
-		err = Wrap(
+		err = wrap(
 			&RepositoryNotDefined{
 				Role: "Assets",
 			})
@@ -143,7 +143,7 @@ func (a *Generate) generate(
 func (a *Generate) writeAsset(assetPath, content string) (err error) {
 	f, err := os.Create(assetPath)
 	if err != nil {
-		err = Wrap(err)
+		err = wrap(err)
 		return
 	}
 	defer func() {
@@ -151,7 +151,7 @@ func (a *Generate) writeAsset(assetPath, content string) (err error) {
 	}()
 	_, err = f.Write([]byte(content))
 	if err != nil {
-		err = Wrap(err)
+		err = wrap(err)
 		return
 	}
 	addon.Activity("[Gen] created: %s", f.Name())
@@ -190,7 +190,7 @@ func (a *Generate) attachValues(gen *api.Generator, values api.Map) (err error) 
 	name := genId + "-values.yaml-"
 	tf, err := os.CreateTemp("", name)
 	if err != nil {
-		err = Wrap(err)
+		err = wrap(err)
 		return
 	}
 	en := yaml.NewEncoder(tf)
@@ -207,7 +207,7 @@ func (a *Generate) attachValues(gen *api.Generator, values api.Map) (err error) 
 	_, _ = tf.WriteString("\n")
 	err = en.Encode(values)
 	if err != nil {
-		err = Wrap(err)
+		err = wrap(err)
 		return
 	}
 	_ = tf.Close()
@@ -222,7 +222,7 @@ func (a *Generate) attachValues(gen *api.Generator, values api.Map) (err error) 
 // cloneCode gets code repository.
 func (a *Generate) cloneCode() (sourceDir string, err error) {
 	if a.application.Repository == nil {
-		err = Wrap(
+		err = wrap(
 			&RepositoryNotDefined{
 				Role: "Source",
 			})
@@ -269,7 +269,7 @@ func (a *Generate) cloneTemplates(gen *api.Generator) (templateDir string, err e
 		genId)
 	err = os.MkdirAll(templateDir, 0755)
 	if err != nil {
-		err = Wrap(err)
+		err = wrap(err)
 		return
 	}
 	template, err := repository.New(
@@ -421,7 +421,7 @@ func (a *Generate) userManifest() (manifest *api.Manifest, err error) {
 		if os.IsNotExist(err) {
 			err = &ManifestNotFound{}
 		} else {
-			err = Wrap(err)
+			err = wrap(err)
 		}
 		return
 	}
