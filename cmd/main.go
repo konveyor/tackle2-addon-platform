@@ -37,6 +37,8 @@ type Data struct {
 	Profiles Profiles `json:"profiles"`
 	// Params generator params
 	Params api.Map `json:"params"`
+	// Render templates.
+	Render bool `json:"render"`
 }
 
 // main
