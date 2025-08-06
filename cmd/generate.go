@@ -39,7 +39,7 @@ func (a *Generate) Run(d *Data) (err error) {
 		return
 	}
 	addon.Activity(
-		"[Gen] Fetch manifest for application (id=%d): %s",
+		"[Generate] Fetch manifest for application (id=%d): %s",
 		a.application.ID,
 		a.application.Name)
 	if a.application.Assets == nil {
@@ -79,7 +79,7 @@ func (a *Generate) Run(d *Data) (err error) {
 	}
 	for _, gen := range generators {
 		addon.Activity(
-			"[Gen] Using generator (id=%d): %s.",
+			"[Generate] Using generator (id=%d): %s.",
 			gen.ID,
 			gen.Name)
 		var templateDir string
@@ -221,7 +221,7 @@ func (a *Generate) writeAsset(assetPath, content string) (err error) {
 		err = wrap(err)
 		return
 	}
-	addon.Activity("[Gen] Created: %s", assetPath)
+	addon.Activity("[Generate] Created: %s", assetPath)
 	return
 }
 
@@ -246,12 +246,12 @@ func (a *Generate) writeValues(assetDir string, values api.Map) (paths []string,
 func (a *Generate) writeTemplates(templateDir, assetDir string) (paths []string, err error) {
 	err = fp.Walk(
 		templateDir,
-		func(path string, ent os.FileInfo, nErr error) (err error) {
+		func(entPath string, ent os.FileInfo, nErr error) (err error) {
 			if nErr != nil {
 				err = wrap(nErr)
 				return
 			}
-			assetPath, _ := fp.Rel(templateDir, path)
+			assetPath, _ := fp.Rel(templateDir, entPath)
 			assetPath = fp.Join(assetDir, assetPath)
 			paths = append(paths, assetPath)
 			if ent.IsDir() {
@@ -262,7 +262,7 @@ func (a *Generate) writeTemplates(templateDir, assetDir string) (paths []string,
 				}
 			} else {
 				var b []byte
-				b, err = os.ReadFile(path)
+				b, err = os.ReadFile(entPath)
 				if err != nil {
 					err = wrap(err)
 					return
@@ -524,7 +524,7 @@ func (a *Generate) manifest() (redacted, manifest *api.Manifest, err error) {
 		return
 	}
 	addon.Activity(
-		"[Gen] Using manifest id=%d",
+		"[Generate] Using manifest id=%d",
 		manifest.ID)
 	return
 }
@@ -557,7 +557,7 @@ func (a *Generate) userManifest() (manifest *api.Manifest, err error) {
 	err = decoder.Decode(&manifest.Content)
 	if err == nil {
 		addon.Activity(
-			"[Gen] Using manifest at: ",
+			"[Generate] Using manifest at: ",
 			file)
 	}
 	return
