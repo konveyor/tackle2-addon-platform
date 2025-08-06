@@ -184,7 +184,7 @@ func (a *Generate) generate(
 	return
 }
 
-// render the templates using generator.
+// render the templates using engine.
 func (a *Generate) render(
 	gen *api.Generator,
 	params api.Map,
