@@ -12,13 +12,13 @@ var (
 
 type Files = map[string]string
 
-// Engine is a helm template engine.
+// Engine is a helm rendering engine.
 type Engine struct {
 }
 
-// Generate generates assets.
+// Render renders assets.
 // Returns a list of files (content).
-func (g *Engine) Generate(templateDir string, values api.Map) (files Files, err error) {
+func (g *Engine) Render(templateDir string, values api.Map) (files Files, err error) {
 	files = make(Files)
 	config := hp.Config{
 		ChartPath: templateDir,

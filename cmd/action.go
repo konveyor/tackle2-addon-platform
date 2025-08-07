@@ -137,7 +137,7 @@ type Provider interface {
 	Find(filter api.Map) (found []api.Application, err error)
 }
 
-// Engine is a templating engine.
+// Engine is a template rendering engine.
 type Engine interface {
-	Generate(templateDir string, values api.Map) (files Files, err error)
+	Render(templateDir string, values api.Map) (files Files, err error)
 }
