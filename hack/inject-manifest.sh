@@ -7,6 +7,9 @@ while getopts ":v:m:h" opt; do
     m) manifest="$OPTARG"
     ;;
     h)
+      echo
+      echo "Inject an application manifest into the values file under the 'manifest:' node."
+      echo
       echo "Usage: $0 [options]"
       echo "Options:"
       echo "  -v <path>  Path to values file (default: values.yaml)"
