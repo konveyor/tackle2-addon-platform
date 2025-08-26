@@ -25,6 +25,16 @@ done
 values="${values:-values.yaml}"
 manifest="${manifest:-manifest.yaml}"
 
+if [ ! -f "$values" ]; then
+  echo "Error: Values file '$values' not found."
+  exit 1
+fi
+
+if [ ! -f "$manifest" ]; then
+  echo "Error: Manifest file '$manifest' not found."
+  exit 1
+fi
+
 yq e -n '.manifest = load("'"${manifest}"'")' | \
   yq eval-all -i 'select(fileIndex == 0) * select(fileIndex == 1)' "${values}" -
 
