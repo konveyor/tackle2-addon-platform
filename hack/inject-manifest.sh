@@ -10,11 +10,11 @@ while getopts ":v:m:h" opt; do
       echo
       echo "Inject an application manifest into the values file under the 'manifest:' node."
       echo
-      echo "Usage: $0 [options]"
-      echo "Options:"
-      echo "  -v <path>  Path to values file (default: values.yaml)"
-      echo "  -m <path>  Path to manifest file (default: manifest.yaml)"
-      echo "  -h         Display this help message"
+      echo "usage: $0 [options]"
+      echo "options:"
+      echo "  -v <path>  path to values file (default: values.yaml)"
+      echo "  -m <path>  path to manifest file (default: manifest.yaml)"
+      echo "  -h         display help"
       exit 0
     ;;
     ?) echo "Invalid option -$OPTARG"; exit 1
