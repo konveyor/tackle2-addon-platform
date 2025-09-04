@@ -66,6 +66,10 @@ func (a *Generate) Run(d *Data) (err error) {
 	assetDir := path.Join(
 		AssetDir,
 		a.application.Assets.Path)
+	err = nas.MkDir(assetDir, 0755)
+	if err != nil {
+		return
+	}
 	err = a.purge(assetDir)
 	if err != nil {
 		return
