@@ -66,6 +66,10 @@ func (a *Generate) Run(d *Data) (err error) {
 	assetDir := path.Join(
 		AssetDir,
 		a.application.Assets.Path)
+	err = nas.MkDir(assetDir, 0755)
+	if err != nil {
+		return
+	}
 	err = a.purge(assetDir)
 	if err != nil {
 		return
@@ -127,6 +131,9 @@ func (a *Generate) purge(assetDir string) (err error) {
 				return
 			}
 			if strings.HasPrefix(path.Base(entPath), ".") {
+				if ent.IsDir() {
+					err = fp.SkipDir
+				}
 				return
 			}
 			if ent.IsDir() {
@@ -231,6 +238,12 @@ func (a *Generate) writeTemplates(templateDir, assetDir string) (err error) {
 		func(entPath string, ent os.FileInfo, nErr error) (err error) {
 			if nErr != nil {
 				err = wrap(nErr)
+				return
+			}
+			if strings.HasPrefix(path.Base(entPath), ".") {
+				if ent.IsDir() {
+					err = fp.SkipDir
+				}
 				return
 			}
 			assetPath, _ := fp.Rel(templateDir, entPath)
