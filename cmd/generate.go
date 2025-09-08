@@ -334,6 +334,7 @@ func (a *Generate) values(gen *api.Generator, params api.Map) (values api.Map, e
 	}
 	v.with(&a.application, manifest, tags)
 	values = v.asMap()
+	a.injected(gen, params)
 	a.inject(values, gen.Values)
 	a.inject(values, params)
 	return
@@ -506,6 +507,19 @@ func (a *Generate) inject(document, inject api.Map) {
 		}
 	}
 	return
+}
+
+// injected reports injected/merged keys.
+func (a *Generate) injected(gen *api.Generator, values api.Map) {
+	for _, m := range []api.Map{gen.Values, values} {
+		for key := range m {
+			addon.Activity(
+				"[Generate] generator (id=%d) '%s' injected: %s",
+				gen.ID,
+				gen.Name,
+				key)
+		}
+	}
 }
 
 // tags returns an array of tags.
