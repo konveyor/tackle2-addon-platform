@@ -483,8 +483,7 @@ func (a *Generate) generators(requested Profiles) (list []*api.Generator, err er
 
 // inject nodes into the document.
 func (a *Generate) inject(document, inject api.Map) {
-	report := make(api.Map)
-	if document == nil {
+	if inject == nil {
 		return
 	}
 	for k, value := range inject {
@@ -494,7 +493,6 @@ func (a *Generate) inject(document, inject api.Map) {
 		for i := range part {
 			p := part[i]
 			if i == leaf {
-				report[p] = value
 				node[p] = value
 				break
 			}
@@ -504,12 +502,8 @@ func (a *Generate) inject(document, inject api.Map) {
 				nested = make(Map)
 				node[p] = nested
 			}
-			report[p] = nested
 			node = nested
 		}
-	}
-	for k, v := range report {
-		addon.Activity("[gen] Inject: %s = %#v", k, v)
 	}
 	return
 }
