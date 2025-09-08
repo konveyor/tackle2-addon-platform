@@ -6,8 +6,10 @@ import (
 	"os"
 	"path"
 	fp "path/filepath"
+	"reflect"
 	"strconv"
 	"strings"
+	"unicode"
 
 	"github.com/konveyor/tackle2-addon/repository"
 	"github.com/konveyor/tackle2-hub/api"
@@ -489,12 +491,13 @@ func (a *Generate) inject(values api.Map, inject api.Map) {
 	}
 	protected := (&Values{}).protected()
 	for k, value := range inject {
-		if protected[k] == 1 {
-			continue
-		}
 		part := strings.Split(k, ".")
+		root := part[0]
 		leaf := len(part) - 1
 		node := Map(values)
+		if protected[root] == 1 {
+			continue
+		}
 		for i := range part {
 			p := part[i]
 			if i == leaf {
@@ -641,9 +644,9 @@ type Values struct {
 		BusinessService string `yaml:"businessService"`
 		Repository      *api.Repository
 		Binary          string
-	}
+	} `protected:"true"`
 	Manifest api.Map
-	Tags     []string
+	Tags     []string `protected:"true"`
 }
 
 // with populates using the specified resources.
@@ -679,11 +682,18 @@ func (v *Values) asMap() (m api.Map) {
 	return
 }
 
-// protected returns the set of protected keys.
-func (v *Values) protected() (ketSet map[string]byte) {
-	ketSet = map[string]byte{
-		"application": 1,
-		"tags":        1,
+// protected returns the set of protected root keys.
+func (v *Values) protected() (keySet map[string]byte) {
+	keySet = make(map[string]byte)
+	vt := reflect.TypeOf(v)
+	vt = vt.Elem()
+	for i := 0; i < vt.NumField(); i++ {
+		vf := vt.Field(i)
+		if _, found := vf.Tag.Lookup("protected"); found {
+			r := []rune(vf.Name)
+			r[0] = unicode.ToLower(r[0])
+			keySet[string(r)] = 1
+		}
 	}
 	return
 }
