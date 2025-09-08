@@ -84,8 +84,16 @@ func TestAssetDir(t *testing.T) {
 	gen.Repository = &api.Repository{Path: "."}
 	p = a.genAssetDir("/tmp", gen)
 	g.Expect(p).To(gomega.Equal(path.Join(rootDir, "18", "templates")))
-	
+
 	gen.Repository = &api.Repository{Path: "/"}
 	p = a.genAssetDir("/tmp", gen)
 	g.Expect(p).To(gomega.Equal(path.Join(rootDir, "18", "templates")))
+	
+	gen.Repository = &api.Repository{Path: "charts/app/v1"}
+	p = a.genAssetDir("/tmp", gen)
+	g.Expect(p).To(gomega.Equal("/tmp/18/v1"))
+
+	gen.Repository = &api.Repository{Path: "a/../../b"}
+	p = a.genAssetDir("/tmp", gen)
+	g.Expect(p).To(gomega.Equal("/tmp/18/b"))
 }
