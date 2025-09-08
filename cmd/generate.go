@@ -482,15 +482,19 @@ func (a *Generate) generators(requested Profiles) (list []*api.Generator, err er
 	return
 }
 
-// inject nodes into the document.
-func (a *Generate) inject(document, inject api.Map) {
+// inject nodes into the values document.
+func (a *Generate) inject(values api.Map, inject api.Map) {
 	if inject == nil {
 		return
 	}
+	protected := (&Values{}).protected()
 	for k, value := range inject {
+		if protected[k] == 1 {
+			continue
+		}
 		part := strings.Split(k, ".")
 		leaf := len(part) - 1
-		node := Map(document)
+		node := Map(values)
 		for i := range part {
 			p := part[i]
 			if i == leaf {
@@ -672,5 +676,14 @@ func (v *Values) with(a *api.Application, m *api.Manifest, tags []string) {
 func (v *Values) asMap() (m api.Map) {
 	b, _ := yaml.Marshal(v)
 	_ = yaml.Unmarshal(b, &m)
+	return
+}
+
+// protected returns the set of protected keys.
+func (v *Values) protected() (ketSet map[string]byte) {
+	ketSet = map[string]byte{
+		"application": 1,
+		"tags":        1,
+	}
 	return
 }
