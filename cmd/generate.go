@@ -2,12 +2,10 @@ package main
 
 import (
 	"errors"
-	"fmt"
 	"net/url"
 	"os"
 	"path"
 	fp "path/filepath"
-	"regexp"
 	"strconv"
 	"strings"
 
@@ -16,10 +14,6 @@ import (
 	"github.com/konveyor/tackle2-hub/binding"
 	"github.com/konveyor/tackle2-hub/nas"
 	yaml "sigs.k8s.io/yaml/goyaml.v3"
-)
-
-var (
-	whiteSpace = regexp.MustCompile(`\s+`)
 )
 
 type Files = map[string]string
@@ -130,7 +124,10 @@ func (a *Generate) Run(d *Data) (err error) {
 
 // assetDir returns a unique asset directory path for the generator.
 func (a *Generate) genAssetDir(rootDir string, gen *api.Generator) (assetDir string) {
-	genId := a.genId(gen)
+	genId := gen.Name
+	if genId == "" {
+		genId = strconv.Itoa(int(gen.ID))
+	}
 	templateDir := path.Base(gen.Repository.Path)
 	if templateDir == "" {
 		parsedURL, err := url.Parse(gen.Repository.URL)
@@ -146,16 +143,6 @@ func (a *Generate) genAssetDir(rootDir string, gen *api.Generator) (assetDir str
 		rootDir,
 		genId,
 		templateDir)
-	return
-}
-
-// genId returns a string identifier for a generator.
-func (a *Generate) genId(gen *api.Generator) (id string) {
-	id = gen.Name
-	id = whiteSpace.ReplaceAllString(id, "-")
-	if id == "" {
-		id = fmt.Sprintf("gen-%d", gen.ID)
-	}
 	return
 }
 
