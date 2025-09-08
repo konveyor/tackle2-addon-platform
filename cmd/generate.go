@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"net/url"
 	"os"
 	"path"
 	fp "path/filepath"
@@ -15,6 +16,10 @@ import (
 	"github.com/konveyor/tackle2-hub/binding"
 	"github.com/konveyor/tackle2-hub/nas"
 	yaml "sigs.k8s.io/yaml/goyaml.v3"
+)
+
+var (
+	whiteSpace = regexp.MustCompile(`\s+`)
 )
 
 type Files = map[string]string
@@ -97,9 +102,7 @@ func (a *Generate) Run(d *Data) (err error) {
 				templateDir,
 				assetDir)
 		} else {
-			assetDir := path.Join(
-				assetDir,
-				a.dirName(gen))
+			assetDir := a.genAssetDir(assetDir, gen)
 			err = nas.MkDir(assetDir, 0755)
 			if err != nil {
 				return
@@ -125,15 +128,34 @@ func (a *Generate) Run(d *Data) (err error) {
 	return
 }
 
-// dirName returns a directory name for the generator.
-func (a *Generate) dirName(gen *api.Generator) (name string) {
-	name = gen.Name
-	if name == "" {
-		name = fmt.Sprintf("generator/%d", gen.ID)
-		return
+// assetDir returns a unique asset directory path for the generator.
+func (a *Generate) genAssetDir(rootDir string, gen *api.Generator) (assetDir string) {
+	genId := a.genId(gen)
+	templateDir := path.Base(gen.Repository.Path)
+	if templateDir == "" {
+		parsedURL, err := url.Parse(gen.Repository.URL)
+		if err != nil {
+			parsedURL = &url.URL{}
+		}
+		templateDir = path.Base(parsedURL.Path)
+		if templateDir == "" {
+			templateDir = parsedURL.Hostname()
+		}
 	}
-	p := regexp.MustCompile(`\s+`)
-	name = p.ReplaceAllString(gen.Name, "-")
+	assetDir = path.Join(
+		rootDir,
+		genId,
+		templateDir)
+	return
+}
+
+// genId returns a string identifier for a generator.
+func (a *Generate) genId(gen *api.Generator) (id string) {
+	id = gen.Name
+	id = whiteSpace.ReplaceAllString(id, "-")
+	if id == "" {
+		id = fmt.Sprintf("gen-%d", gen.ID)
+	}
 	return
 }
 
@@ -238,6 +260,7 @@ func (a *Generate) writeAsset(assetPath, content string) (err error) {
 
 // writeValues writes value.yaml to the assetDir.
 func (a *Generate) writeValues(assetDir string, values api.Map) (err error) {
+	assetDir = path.Dir(assetDir)
 	b, err := yaml.Marshal(values)
 	if err != nil {
 		err = wrap(err)
