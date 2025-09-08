@@ -1,6 +1,7 @@
 package main
 
 import (
+	"path"
 	"testing"
 
 	"github.com/goccy/go-json"
@@ -48,4 +49,43 @@ func TestManifestMerge(t *testing.T) {
 	_ = json.Unmarshal(b, &mB)
 
 	g.Expect(mA).To(gomega.BeEquivalentTo(mB))
+}
+
+func TestAssetDir(t *testing.T) {
+	g := gomega.NewGomegaWithT(t)
+
+	rootDir := "/tmp"
+	a := Generate{}
+
+	gen := &api.Generator{}
+	gen.Name = "templates"
+	gen.Repository = &api.Repository{Path: "test"}
+	p := a.genAssetDir("/tmp", gen)
+	g.Expect(p).To(gomega.Equal(path.Join(rootDir, gen.Name, gen.Repository.Path)))
+
+	gen = &api.Generator{}
+	gen.ID = 18
+	gen.Repository = &api.Repository{Path: "test"}
+	p = a.genAssetDir("/tmp", gen)
+	g.Expect(p).To(gomega.Equal(path.Join(rootDir, "18", gen.Repository.Path)))
+
+	gen.Repository = &api.Repository{URL: "http://host:8080/r/dog.git"}
+	p = a.genAssetDir("/tmp", gen)
+	g.Expect(p).To(gomega.Equal(path.Join(rootDir, "18", "dog.git")))
+
+	gen.Repository = &api.Repository{URL: "http://host:8080"}
+	p = a.genAssetDir("/tmp", gen)
+	g.Expect(p).To(gomega.Equal(path.Join(rootDir, "18", "host")))
+
+	gen.Repository = &api.Repository{URL: ""}
+	p = a.genAssetDir("/tmp", gen)
+	g.Expect(p).To(gomega.Equal(path.Join(rootDir, "18", "templates")))
+
+	gen.Repository = &api.Repository{Path: "."}
+	p = a.genAssetDir("/tmp", gen)
+	g.Expect(p).To(gomega.Equal(path.Join(rootDir, "18", "templates")))
+	
+	gen.Repository = &api.Repository{Path: "/"}
+	p = a.genAssetDir("/tmp", gen)
+	g.Expect(p).To(gomega.Equal(path.Join(rootDir, "18", "templates")))
 }

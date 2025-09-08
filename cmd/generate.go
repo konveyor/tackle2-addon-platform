@@ -132,20 +132,39 @@ func (a *Generate) Run(d *Data) (err error) {
 // - the generator repository URL.Path.
 // - when the URL.Path not specified, the URL.Hostname() is used.
 func (a *Generate) genAssetDir(rootDir string, gen *api.Generator) (assetDir string) {
+	clean := func(s string) (p string) {
+		p = strings.TrimSpace(s)
+		if p == "" {
+			return
+		}
+		if p == "." || p == "/" {
+			p = ""
+			return
+		}
+		p = path.Clean(p)
+		return
+	}
 	genId := gen.Name
+	genId = strings.TrimSpace(genId)
 	if genId == "" {
 		genId = strconv.Itoa(int(gen.ID))
 	}
-	templateDir := path.Base(gen.Repository.Path)
+	parsedURL, err := url.Parse(gen.Repository.URL)
+	if err != nil {
+		parsedURL = &url.URL{}
+	}
+	var templateDir string
+	for _, p := range []string{
+		clean(gen.Repository.Path),
+		clean(parsedURL.Path),
+		clean(parsedURL.Hostname())} {
+		if p != "" {
+			templateDir = path.Base(p)
+			break
+		}
+	}
 	if templateDir == "" {
-		parsedURL, err := url.Parse(gen.Repository.URL)
-		if err != nil {
-			parsedURL = &url.URL{}
-		}
-		templateDir = path.Base(parsedURL.Path)
-		if templateDir == "" {
-			templateDir = parsedURL.Hostname()
-		}
+		templateDir = "templates"
 	}
 	assetDir = path.Join(
 		rootDir,
