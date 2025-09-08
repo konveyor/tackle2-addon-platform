@@ -286,19 +286,19 @@ func (a *Generate) values(gen *api.Generator, params api.Map) (values api.Map, e
 	if err != nil {
 		return
 	}
-	a.inject(redacted.Content, gen.Values)
-	a.inject(redacted.Content, params)
-	a.inject(manifest.Content, gen.Values)
-	a.inject(manifest.Content, params)
 	v := Values{}
 	v.with(&a.application, redacted, tags)
 	values = v.asMap()
+	a.inject(values, gen.Values)
+	a.inject(values, params)
 	err = a.attachValues(gen, values)
 	if err != nil {
 		return
 	}
-	v.Manifest = manifest.Content
+	v.with(&a.application, manifest, tags)
 	values = v.asMap()
+	a.inject(values, gen.Values)
+	a.inject(values, params)
 	return
 }
 
@@ -444,18 +444,20 @@ func (a *Generate) generators(requested Profiles) (list []*api.Generator, err er
 	return
 }
 
-// inject nodes into the manifest.
-func (a *Generate) inject(manifest, d api.Map) {
-	if d == nil {
+// inject nodes into the document.
+func (a *Generate) inject(document, inject api.Map) {
+	report := make(api.Map)
+	if document == nil {
 		return
 	}
-	for k, value := range d {
+	for k, value := range inject {
 		part := strings.Split(k, ".")
 		leaf := len(part) - 1
-		node := Map(manifest)
+		node := Map(document)
 		for i := range part {
 			p := part[i]
 			if i == leaf {
+				report[p] = value
 				node[p] = value
 				break
 			}
@@ -465,9 +467,14 @@ func (a *Generate) inject(manifest, d api.Map) {
 				nested = make(Map)
 				node[p] = nested
 			}
+			report[p] = nested
 			node = nested
 		}
 	}
+	for k, v := range report {
+		addon.Activity("[gen] Inject: %s = %#v", k, v)
+	}
+	return
 }
 
 // tags returns an array of tags.
