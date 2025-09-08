@@ -123,6 +123,12 @@ func (a *Generate) Run(d *Data) (err error) {
 }
 
 // assetDir returns a unique asset directory path for the generator.
+// The genId is:
+// - the generator name.
+// - when not specified, the ID is used.
+// The templateDir is:
+// - the generator repository URL.Path.
+// - when the URL.Path not specified, the URL.Hostname() is used.
 func (a *Generate) genAssetDir(rootDir string, gen *api.Generator) (assetDir string) {
 	genId := gen.Name
 	if genId == "" {
