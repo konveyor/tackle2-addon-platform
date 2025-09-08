@@ -2,9 +2,11 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"path"
 	fp "path/filepath"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -95,6 +97,13 @@ func (a *Generate) Run(d *Data) (err error) {
 				templateDir,
 				assetDir)
 		} else {
+			assetDir := path.Join(
+				assetDir,
+				a.dirName(gen))
+			err = nas.MkDir(assetDir, 0755)
+			if err != nil {
+				return
+			}
 			err = a.generate(
 				gen,
 				d.Params,
@@ -113,6 +122,18 @@ func (a *Generate) Run(d *Data) (err error) {
 	if err != nil {
 		return
 	}
+	return
+}
+
+// dirName returns a directory name for the generator.
+func (a *Generate) dirName(gen *api.Generator) (name string) {
+	name = gen.Name
+	if name == "" {
+		name = fmt.Sprintf("generator/%d", gen.ID)
+		return
+	}
+	p := regexp.MustCompile(`\s+`)
+	name = p.ReplaceAllString(gen.Name, "-")
 	return
 }
 
