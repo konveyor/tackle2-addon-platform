@@ -326,19 +326,24 @@ func (a *Generate) values(gen *api.Generator, params api.Map) (values api.Map, e
 		return
 	}
 	v := Values{}
+	// redacted (just reported).
 	v.with(&a.application, redacted, tags)
-	values = v.asMap()
-	a.inject(values, gen.Values)
-	a.inject(values, params)
+	values, _ = v.inject(gen.Values, params)
 	err = a.attachValues(gen, values)
 	if err != nil {
 		return
 	}
+	// used.
+	v = Values{}
 	v.with(&a.application, manifest, tags)
-	values = v.asMap()
-	a.injected(gen, params)
-	a.inject(values, gen.Values)
-	a.inject(values, params)
+	values, injected := v.inject(gen.Values, params)
+	for _, key := range injected {
+		addon.Activity(
+			"[Generate] generator (id=%d) '%s' injected: %s",
+			gen.ID,
+			gen.Name,
+			key)
+	}
 	return
 }
 
@@ -484,51 +489,6 @@ func (a *Generate) generators(requested Profiles) (list []*api.Generator, err er
 	return
 }
 
-// inject nodes into the values document.
-func (a *Generate) inject(values api.Map, inject api.Map) {
-	if inject == nil {
-		return
-	}
-	protected := (&Values{}).protected()
-	for k, value := range inject {
-		part := strings.Split(k, ".")
-		root := part[0]
-		leaf := len(part) - 1
-		node := Map(values)
-		if protected[root] == 1 {
-			continue
-		}
-		for i := range part {
-			p := part[i]
-			if i == leaf {
-				node[p] = value
-				break
-			}
-			v, found := node[p]
-			nested, cast := v.(Map)
-			if !found || !cast {
-				nested = make(Map)
-				node[p] = nested
-			}
-			node = nested
-		}
-	}
-	return
-}
-
-// injected reports injected/merged keys.
-func (a *Generate) injected(gen *api.Generator, values api.Map) {
-	for _, m := range []api.Map{gen.Values, values} {
-		for key := range m {
-			addon.Activity(
-				"[Generate] generator (id=%d) '%s' injected: %s",
-				gen.ID,
-				gen.Name,
-				key)
-		}
-	}
-}
-
 // tags returns an array of tags.
 // format: category=tag.
 func (a *Generate) tags() (tags []string, err error) {
@@ -644,9 +604,9 @@ type Values struct {
 		BusinessService string `yaml:"businessService"`
 		Repository      *api.Repository
 		Binary          string
-	} `protected:"true"`
+	} `protected:""`
 	Manifest api.Map
-	Tags     []string `protected:"true"`
+	Tags     []string `protected:""`
 }
 
 // with populates using the specified resources.
@@ -695,5 +655,42 @@ func (v *Values) protected() (keySet map[string]byte) {
 			keySet[string(r)] = 1
 		}
 	}
+	return
+}
+
+// inject nodes into the values document.
+func (v *Values) inject(inject ...api.Map) (mp api.Map, injected []string) {
+	mp = v.asMap()
+	protected := v.protected()
+	for _, m := range inject {
+		if m == nil {
+			continue
+		}
+		for k, value := range m {
+			part := strings.Split(k, ".")
+			root := part[0]
+			leaf := len(part) - 1
+			node := Map(mp)
+			if protected[root] == 1 {
+				continue
+			}
+			injected = append(injected, k)
+			for i := range part {
+				p := part[i]
+				if i == leaf {
+					node[p] = value
+					break
+				}
+				v, found := node[p]
+				nested, cast := v.(Map)
+				if !found || !cast {
+					nested = make(Map)
+					node[p] = nested
+				}
+				node = nested
+			}
+		}
+	}
+
 	return
 }
