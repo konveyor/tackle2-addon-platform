@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"strings"
 
 	"github.com/konveyor/tackle2-addon-platform/cmd/cloudfoundry"
 	"github.com/konveyor/tackle2-addon-platform/cmd/helm"
@@ -94,13 +95,14 @@ func (r *BaseAction) selectIdentity(kind string) (ref *api.Ref, err error) {
 
 // selectProvider returns a platform provider based on kind.
 func (r *BaseAction) selectProvider(kind string) (p Provider, err error) {
-	switch kind {
+	switch strings.ToLower(kind) {
 	case "cloudfoundry":
 		p = &cloudfoundry.Provider{
 			URL: r.platform.URL,
 		}
 	default:
 		err = errors.New("platform kind not supported")
+		err = wrap(err)
 		return
 	}
 	if r.platform.Identity == nil || r.platform.Identity.ID == 0 {
@@ -120,11 +122,12 @@ func (r *BaseAction) selectProvider(kind string) (p Provider, err error) {
 
 // selectEngine returns a template engine based on kind.
 func (r *BaseAction) selectEngine(kind string) (e Engine, err error) {
-	switch kind {
+	switch strings.ToLower(kind) {
 	case "helm":
 		e = &helm.Engine{}
 	default:
 		err = errors.New("generator kind not supported")
+		err = wrap(err)
 		return
 	}
 	return

@@ -2,11 +2,14 @@ package main
 
 import (
 	"errors"
+	"net/url"
 	"os"
 	"path"
 	fp "path/filepath"
+	"reflect"
 	"strconv"
 	"strings"
+	"unicode"
 
 	"github.com/konveyor/tackle2-addon/repository"
 	"github.com/konveyor/tackle2-hub/api"
@@ -95,6 +98,11 @@ func (a *Generate) Run(d *Data) (err error) {
 				templateDir,
 				assetDir)
 		} else {
+			assetDir := a.genAssetDir(assetDir, gen)
+			err = nas.MkDir(assetDir, 0755)
+			if err != nil {
+				return
+			}
 			err = a.generate(
 				gen,
 				d.Params,
@@ -113,6 +121,55 @@ func (a *Generate) Run(d *Data) (err error) {
 	if err != nil {
 		return
 	}
+	return
+}
+
+// assetDir returns a unique asset directory path for the generator.
+// The genId is:
+// - the generator name.
+// - when not specified, the ID is used.
+// The templateDir is:
+// - the generator repository URL.Path.
+// - when the URL.Path not specified, the URL.Hostname() is used.
+func (a *Generate) genAssetDir(rootDir string, gen *api.Generator) (assetDir string) {
+	clean := func(s string) (p string) {
+		p = strings.TrimSpace(s)
+		if p == "" {
+			return
+		}
+		if p == "." || p == "/" {
+			p = ""
+			return
+		}
+		p = path.Clean(p)
+		return
+	}
+	genId := gen.Name
+	genId = strings.TrimSpace(genId)
+	if genId == "" {
+		genId = strconv.Itoa(int(gen.ID))
+	}
+	parsedURL, err := url.Parse(gen.Repository.URL)
+	if err != nil {
+		parsedURL = &url.URL{}
+	}
+	var templateDir string
+	for _, p := range []string{
+		clean(gen.Repository.Path),
+		clean(parsedURL.Path),
+		clean(parsedURL.Hostname())} {
+		if p != "" {
+			templateDir = path.Base(p)
+			break
+		}
+	}
+	if templateDir == "" {
+		templateDir = "templates"
+	}
+	assetDir = path.Join(
+		rootDir,
+		genId,
+		templateDir)
 	return
 }
 
@@ -217,6 +274,7 @@ func (a *Generate) writeAsset(assetPath, content string) (err error) {
 
 // writeValues writes value.yaml to the assetDir.
 func (a *Generate) writeValues(assetDir string, values api.Map) (err error) {
+	assetDir = path.Dir(assetDir)
 	b, err := yaml.Marshal(values)
 	if err != nil {
 		err = wrap(err)
@@ -286,19 +344,25 @@ func (a *Generate) values(gen *api.Generator, params api.Map) (values api.Map, e
 	if err != nil {
 		return
 	}
-	a.inject(redacted.Content, gen.Values)
-	a.inject(redacted.Content, params)
-	a.inject(manifest.Content, gen.Values)
-	a.inject(manifest.Content, params)
 	v := Values{}
+	// redacted (just reported).
 	v.with(&a.application, redacted, tags)
-	values = v.asMap()
+	values, _ = v.inject(gen.Values, params)
 	err = a.attachValues(gen, values)
 	if err != nil {
 		return
 	}
-	v.Manifest = manifest.Content
-	values = v.asMap()
+	// used.
+	v = Values{}
+	v.with(&a.application, manifest, tags)
+	values, injected := v.inject(gen.Values, params)
+	for _, key := range injected {
+		addon.Activity(
+			"[Generate] generator (id=%d) '%s' injected: %s",
+			gen.ID,
+			gen.Name,
+			key)
+	}
 	return
 }
 
@@ -444,32 +508,6 @@ func (a *Generate) generators(requested Profiles) (list []*api.Generator, err er
 	return
 }
 
-// inject nodes into the manifest.
-func (a *Generate) inject(manifest, d api.Map) {
-	if d == nil {
-		return
-	}
-	for k, value := range d {
-		part := strings.Split(k, ".")
-		leaf := len(part) - 1
-		node := Map(manifest)
-		for i := range part {
-			p := part[i]
-			if i == leaf {
-				node[p] = value
-				break
-			}
-			v, found := node[p]
-			nested, cast := v.(Map)
-			if !found || !cast {
-				nested = make(Map)
-				node[p] = nested
-			}
-			node = nested
-		}
-	}
-}
-
 // tags returns an array of tags.
 // format: category=tag.
 func (a *Generate) tags() (tags []string, err error) {
@@ -585,9 +623,9 @@ type Values struct {
 		BusinessService string `yaml:"businessService"`
 		Repository      *api.Repository
 		Binary          string
-	}
+	} `protected:""`
 	Manifest api.Map
-	Tags     []string
+	Tags     []string `protected:""`
 }
 
 // with populates using the specified resources.
@@ -620,5 +658,58 @@ func (v *Values) with(a *api.Application, m *api.Manifest, tags []string) {
 func (v *Values) asMap() (m api.Map) {
 	b, _ := yaml.Marshal(v)
 	_ = yaml.Unmarshal(b, &m)
+	return
+}
+
+// protected returns the set of protected root keys.
+func (v *Values) protected() (keySet map[string]byte) {
+	keySet = make(map[string]byte)
+	vt := reflect.TypeOf(v)
+	vt = vt.Elem()
+	for i := 0; i < vt.NumField(); i++ {
+		vf := vt.Field(i)
+		if _, found := vf.Tag.Lookup("protected"); found {
+			r := []rune(vf.Name)
+			r[0] = unicode.ToLower(r[0])
+			keySet[string(r)] = 1
+		}
+	}
+	return
+}
+
+// inject nodes into the values document.
+func (v *Values) inject(inject ...api.Map) (mp api.Map, injected []string) {
+	mp = v.asMap()
+	protected := v.protected()
+	for _, m := range inject {
+		if m == nil {
+			continue
+		}
+		for k, value := range m {
+			part := strings.Split(k, ".")
+			root := part[0]
+			leaf := len(part) - 1
+			node := Map(mp)
+			if protected[root] == 1 {
+				continue
+			}
+			injected = append(injected, k)
+			for i := range part {
+				p := part[i]
+				if i == leaf {
+					node[p] = value
+					break
+				}
+				v, found := node[p]
+				nested, cast := v.(Map)
+				if !found || !cast {
+					nested = make(Map)
+					node[p] = nested
+				}
+				node = nested
+			}
+		}
+	}
+
 	return
 }
