@@ -15,6 +15,10 @@ func TestManifestMerge(t *testing.T) {
 		"a": api.Map{
 			"b": 2,
 		},
+		"n": api.Map{
+			"L": 0,
+			"K": 1,
+		},
 		"c": 25,
 	}}
 
@@ -35,6 +39,10 @@ func TestManifestMerge(t *testing.T) {
 				"x": 200,
 				"y": 200,
 			},
+		},
+		"n": api.Map{
+			"L": 0,
+			"K": 1,
 		},
 		"c": 300,
 	}}
