@@ -678,10 +678,10 @@ func (v *Values) protected() (keySet map[string]byte) {
 }
 
 // inject nodes into the values document.
-func (v *Values) inject(inject ...api.Map) (mp api.Map, injected []string) {
+func (v *Values) inject(with ...Map) (mp api.Map, injected []string) {
 	mp = v.asMap()
 	protected := v.protected()
-	for _, m := range inject {
+	for _, m := range with {
 		if m == nil {
 			continue
 		}
@@ -700,16 +700,19 @@ func (v *Values) inject(inject ...api.Map) (mp api.Map, injected []string) {
 					node[p] = value
 					break
 				}
-				v, found := node[p]
-				nested, cast := v.(Map)
-				if !found || !cast {
+				v := node[p]
+				switch nested := v.(type) {
+				case Map:
+					node = nested
+				case api.Map:
+					node = nested
+				default:
 					nested = make(Map)
 					node[p] = nested
+					node = nested.(Map)
 				}
-				node = nested
 			}
 		}
 	}
-
 	return
 }
