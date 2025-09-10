@@ -22,15 +22,19 @@ func TestManifestMerge(t *testing.T) {
 		"c": 25,
 	}}
 
-	d := api.Map{
-		"manifest.a.b":   100,
-		"manifest.a.n.x": 200,
-		"manifest.a.n.y": 200,
-		"manifest.c":     300,
-		"port":           8080,
+	withValues := api.Map{
+		"application":      0, // protected
+		"application.name": 0, // protected
+		"tags":             0, // protected
+		"tags.name":        0, // protected
+		"manifest.a.b":     100,
+		"manifest.a.n.x":   200,
+		"manifest.a.n.y":   200,
+		"manifest.c":       300,
+		"port":             8080,
 	}
 
-	injected, _ := v.inject(d)
+	injected, _ := v.inject(withValues)
 
 	v2 := Values{Manifest: api.Map{
 		"a": api.Map{
