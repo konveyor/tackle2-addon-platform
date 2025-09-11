@@ -51,14 +51,18 @@ func (a *Generate) Run(d *Data) (err error) {
 			})
 		return
 	}
-	identity, err := a.selectIdentity("asset")
+	var options []any
+	identity, found, err := a.selectIdentity("asset")
 	if err != nil {
 		return
+	}
+	if found {
+		options = append(options, identity)
 	}
 	assetRepo, err := repository.New(
 		AssetDir,
 		a.application.Assets,
-		identity)
+		options...)
 	if err != nil {
 		return
 	}
@@ -411,8 +415,7 @@ func (a *Generate) cloneCode() (sourceDir string, err error) {
 		return
 	}
 	var options []any
-	idapi := addon.Application.Identity(a.application.ID)
-	identity, found, err := idapi.Find("source")
+	identity, found, err := a.selectIdentity("source")
 	if err != nil {
 		return
 	}

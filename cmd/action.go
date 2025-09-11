@@ -7,6 +7,7 @@ import (
 	"github.com/konveyor/tackle2-addon-platform/cmd/cloudfoundry"
 	"github.com/konveyor/tackle2-addon-platform/cmd/helm"
 	"github.com/konveyor/tackle2-hub/api"
+	"github.com/konveyor/tackle2-hub/binding"
 )
 
 // Action provides and addon action.
@@ -78,9 +79,11 @@ func (r *BaseAction) setPlatform() (err error) {
 }
 
 // selectIdentity selects an identity based on kind.
-func (r *BaseAction) selectIdentity(kind string) (ref *api.Ref, err error) {
+func (r *BaseAction) selectIdentity(kind string) (ref *api.Ref, found bool, err error) {
+	filter := binding.Filter{}
+	filter.And("role").Eq(kind)
 	idapi := addon.Application.Identity(r.application.ID)
-	id, found, err := idapi.Find(kind)
+	id, found, err := idapi.Find(filter)
 	if err != nil {
 		return
 	}
