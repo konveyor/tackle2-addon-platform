@@ -78,12 +78,10 @@ func (r *BaseAction) setPlatform() (err error) {
 	return
 }
 
-// selectIdentity selects an application identity based on role.
-func (r *BaseAction) selectIdentity(role string) (ref *api.Ref, found bool, err error) {
-	filter := binding.Filter{}
-	filter.And("role").Eq(role)
+// selectIdentity selects an application identity.
+func (r *BaseAction) selectIdentity(filter ...binding.Filter) (ref *api.Ref, found bool, err error) {
 	idapi := addon.Application.Identity(r.application.ID)
-	id, found, err := idapi.Find(filter)
+	id, found, err := idapi.Find(filter...)
 	if err != nil {
 		return
 	}

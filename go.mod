@@ -15,7 +15,7 @@ require (
 	sigs.k8s.io/yaml v1.4.0
 )
 
-replace github.com/konveyor/tackle2-hub => github.com/jortel/tackle2-hub v0.0.0-20250911223210-c5049fc6c263
+replace github.com/konveyor/tackle2-hub => github.com/jortel/tackle2-hub v0.0.0-20250912031923-f3c0d369c3df
 
 require (
 	dario.cat/mergo v1.0.1 // indirect

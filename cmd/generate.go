@@ -52,7 +52,11 @@ func (a *Generate) Run(d *Data) (err error) {
 		return
 	}
 	var options []any
-	identity, found, err := a.selectIdentity("asset")
+	filter := binding.Filter{}
+	filter.And("role").Eq("asset")
+	filter2 := binding.Filter{}
+	filter2.And("kind").Eq("source")
+	identity, found, err := a.selectIdentity(filter, filter2)
 	if err != nil {
 		return
 	}
@@ -415,7 +419,9 @@ func (a *Generate) cloneCode() (sourceDir string, err error) {
 		return
 	}
 	var options []any
-	identity, found, err := a.selectIdentity("source")
+	filter := binding.Filter{}
+	filter.And("kind").Eq("source")
+	identity, found, err := a.selectIdentity(filter)
 	if err != nil {
 		return
 	}
