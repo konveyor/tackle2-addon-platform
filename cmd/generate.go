@@ -54,7 +54,7 @@ func (a *Generate) Run(d *Data) (err error) {
 	var options []any
 	identity, found, err :=
 		addon.Application.Identity(a.application.ID).Search().
-		Direct("asset").
+			Direct("asset").
 			Direct("source").
 			Indirect("source").
 			Find()
@@ -422,7 +422,6 @@ func (a *Generate) cloneCode() (sourceDir string, err error) {
 	var options []any
 	identity, found, err :=
 		addon.Application.Identity(a.application.ID).Search().
-		Direct("asset").
 			Direct("source").
 			Indirect("source").
 			Find()
