@@ -421,7 +421,9 @@ func (a *Generate) cloneCode() (sourceDir string, err error) {
 	var options []any
 	filter := binding.Filter{}
 	filter.And("kind").Eq("source")
-	identity, found, err := a.selectIdentity(filter)
+	filter2 := binding.Filter{}
+	filter2.And("kind").Eq("source")
+	identity, found, err := a.selectIdentity(filter, filter2)
 	if err != nil {
 		return
 	}
