@@ -466,10 +466,14 @@ func (a *Generate) cloneTemplates(gen *api.Generator) (templateDir string, err e
 		err = wrap(err)
 		return
 	}
+	var options []any
+	if gen.Identity != nil {
+		options = append(options, gen.Identity)
+	}
 	template, err := repository.New(
 		templateDir,
 		gen.Repository,
-		gen.Identity)
+		options...)
 	if err != nil {
 		return
 	}
