@@ -77,22 +77,6 @@ func (r *BaseAction) setPlatform() (err error) {
 	return
 }
 
-// selectIdentity selects an identity based on kind.
-func (r *BaseAction) selectIdentity(kind string) (ref *api.Ref, err error) {
-	idapi := addon.Application.Identity(r.application.ID)
-	id, found, err := idapi.Find(kind)
-	if err != nil {
-		return
-	}
-	if found {
-		ref = &api.Ref{
-			ID:   id.ID,
-			Name: id.Name,
-		}
-	}
-	return
-}
-
 // selectProvider returns a platform provider based on kind.
 func (r *BaseAction) selectProvider(kind string) (p Provider, err error) {
 	switch strings.ToLower(kind) {

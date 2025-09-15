@@ -51,14 +51,23 @@ func (a *Generate) Run(d *Data) (err error) {
 			})
 		return
 	}
-	identity, err := a.selectIdentity("asset")
+	var options []any
+	identity, found, err :=
+		addon.Application.Identity(a.application.ID).Search().
+			Direct("asset").
+			Direct("source").
+			Indirect("source").
+			Find()
 	if err != nil {
 		return
+	}
+	if found {
+		options = append(options, identity)
 	}
 	assetRepo, err := repository.New(
 		AssetDir,
 		a.application.Assets,
-		identity)
+		options...)
 	if err != nil {
 		return
 	}
@@ -411,8 +420,11 @@ func (a *Generate) cloneCode() (sourceDir string, err error) {
 		return
 	}
 	var options []any
-	idapi := addon.Application.Identity(a.application.ID)
-	identity, found, err := idapi.Find("source")
+	identity, found, err :=
+		addon.Application.Identity(a.application.ID).Search().
+			Direct("source").
+			Indirect("source").
+			Find()
 	if err != nil {
 		return
 	}
@@ -454,10 +466,14 @@ func (a *Generate) cloneTemplates(gen *api.Generator) (templateDir string, err e
 		err = wrap(err)
 		return
 	}
+	var options []any
+	if gen.Identity != nil {
+		options = append(options, gen.Identity)
+	}
 	template, err := repository.New(
 		templateDir,
 		gen.Repository,
-		gen.Identity)
+		options...)
 	if err != nil {
 		return
 	}

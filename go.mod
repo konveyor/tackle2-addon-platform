@@ -10,7 +10,7 @@ require (
 	github.com/jortel/go-utils v0.1.4
 	github.com/konveyor/asset-generation v0.1.12
 	github.com/konveyor/tackle2-addon v0.8.0-alpha.1
-	github.com/konveyor/tackle2-hub v0.8.0-alpha.1.0.20250806105606-ac22f2e6ebba
+	github.com/konveyor/tackle2-hub v0.8.0-beta.4.0.20250915141536-ccf24542dd57
 	github.com/onsi/gomega v1.38.2
 	sigs.k8s.io/yaml v1.4.0
 )
