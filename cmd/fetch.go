@@ -5,7 +5,6 @@ import "github.com/konveyor/tackle2-hub/api"
 const (
 	TagSource   = "platform-discovery"
 	TagCategory = "Platform"
-	Tag         = "Cloud Foundry"
 )
 
 // Fetch application manifest action.
@@ -31,7 +30,7 @@ func (a *Fetch) Run(d *Data) (err error) {
 	if err != nil {
 		return
 	}
-	err = a.setTag()
+	err = a.setTag(provider)
 	if err != nil {
 		return
 	}
@@ -56,7 +55,7 @@ func (a *Fetch) fetch(p Provider, app *api.Application) (err error) {
 }
 
 // setTag replaces the platform tag.
-func (a *Fetch) setTag() (err error) {
+func (a *Fetch) setTag(p Provider) (err error) {
 	cat := &api.TagCategory{Name: TagCategory}
 	err = addon.TagCategory.Ensure(cat)
 	if err != nil {
@@ -64,7 +63,7 @@ func (a *Fetch) setTag() (err error) {
 	}
 	tag := &api.Tag{
 		Category: api.Ref{ID: cat.ID},
-		Name:     Tag,
+		Name:     p.Tag(),
 	}
 	err = addon.Tag.Ensure(tag)
 	if err != nil {
@@ -74,7 +73,8 @@ func (a *Fetch) setTag() (err error) {
 	appTags.Source(TagSource)
 	err = appTags.Replace([]uint{tag.ID})
 	if err != nil {
-		addon.Activity("Application tagged.")
+		return
 	}
+	addon.Activity("Application tagged.")
 	return
 }
