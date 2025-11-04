@@ -163,7 +163,7 @@ func (f *Filter) Match(ref cfp.AppReference) (match bool) {
 	return
 }
 
-// MatchOrganization returns true when the application name matches the filter.
+// MatchOrganization returns true when the organization name matches the filter.
 func (f *Filter) MatchOrganization(name string) (match bool) {
 	if len(f.Organizations) == 0 {
 		match = true
@@ -178,7 +178,7 @@ func (f *Filter) MatchOrganization(name string) (match bool) {
 	return
 }
 
-// MatchSpace returns true when the application name matches the filter.
+// MatchSpace returns true when the space name matches the filter.
 func (f *Filter) MatchSpace(name string) (match bool) {
 	if len(f.Spaces) == 0 {
 		match = true
