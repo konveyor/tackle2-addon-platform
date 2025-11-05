@@ -38,10 +38,11 @@ func (p *Provider) Fetch(application *api.Application) (m *api.Manifest, err err
 		return
 	}
 	ref := cfp.AppReference{
+		OrgName:   coordinates.Organization,
 		SpaceName: coordinates.Space,
 		AppName:   coordinates.Name,
 	}
-	client, err := p.client(ref.SpaceName)
+	client, err := p.client(coordinates.Filter())
 	if err != nil {
 		return
 	}
@@ -63,11 +64,11 @@ func (p *Provider) Find(filter api.Map) (found []api.Application, err error) {
 	if err != nil {
 		return
 	}
-	client, err := p.client(f.Spaces...)
+	client, err := p.client(f)
 	if err != nil {
 		return
 	}
-	spaces, err := client.ListApps()
+	refs, err := client.ListApps()
 	if err != nil {
 		return
 	}
@@ -75,13 +76,10 @@ func (p *Provider) Find(filter api.Map) (found []api.Application, err error) {
 	if err != nil {
 		return
 	}
-	for space, applications := range spaces {
-		if !f.MatchSpace(space) {
-			continue
-		}
+	for _, applications := range refs {
 		for _, ref := range applications {
 			appRef := ref.(cfp.AppReference)
-			if !f.MatchName(appRef.AppName) {
+			if !f.Match(appRef) {
 				continue
 			}
 			r := api.Application{}
@@ -89,8 +87,9 @@ func (p *Provider) Find(filter api.Map) (found []api.Application, err error) {
 			r.Coordinates = &jsd.Document{
 				Schema: schema.Name,
 				Content: json.Map{
-					"name":  appRef.AppName,
-					"space": space,
+					"organization": appRef.OrgName,
+					"space":        appRef.SpaceName,
+					"name":         appRef.AppName,
 				},
 			}
 			found = append(found, r)
@@ -100,7 +99,7 @@ func (p *Provider) Find(filter api.Map) (found []api.Application, err error) {
 }
 
 // client returns a cloudfoundry client.
-func (p *Provider) client(spaces ...string) (client *cfp.CloudFoundryProvider, err error) {
+func (p *Provider) client(filter Filter) (client *cfp.CloudFoundryProvider, err error) {
 	options := []cf.Option{
 		cf.SkipTLSValidation(),
 	}
@@ -118,7 +117,8 @@ func (p *Provider) client(spaces ...string) (client *cfp.CloudFoundryProvider, e
 	}
 	pConfig := &cfp.Config{
 		CloudFoundryConfig: cfConfig,
-		SpaceNames:         spaces,
+		OrgNames:           filter.Organizations,
+		SpaceNames:         filter.Spaces,
 	}
 	client, err = cfp.New(pConfig, &addon.Log, true)
 	if err != nil {
@@ -130,18 +130,55 @@ func (p *Provider) client(spaces ...string) (client *cfp.CloudFoundryProvider, e
 
 // Coordinates - platform coordinates.
 type Coordinates struct {
-	Space string `json:"space"`
-	Name  string `json:"name"`
+	Organization string `json:"organization"`
+	Space        string `json:"space"`
+	Name         string `json:"name"`
+}
+
+// Filter returns a filter.
+func (c *Coordinates) Filter() (f Filter) {
+	f.Organizations = []string{c.Organization}
+	f.Spaces = []string{c.Space}
+	f.Names = []string{c.Name}
+	return
 }
 
 // Filter applications.
 type Filter struct {
-	Spaces []string `json:"spaces"`
-	Names  []string `json:"names"`
+	Organizations []string `json:"organizations"`
+	Spaces        []string `json:"spaces"`
+	Names         []string `json:"names"`
 }
 
-// MatchSpace returns true when the application name matches the filter.
+// Match returns true when the ref matches the filter.
+func (f *Filter) Match(ref cfp.AppReference) (match bool) {
+	match = f.MatchOrganization(ref.OrgName) &&
+		f.MatchSpace(ref.SpaceName) &&
+		f.MatchName(ref.AppName)
+	return
+}
+
+// MatchOrganization returns true when the organization name matches the filter.
+func (f *Filter) MatchOrganization(name string) (match bool) {
+	if len(f.Organizations) == 0 {
+		match = true
+		return
+	}
+	for _, s := range f.Organizations {
+		match = s == name
+		if match {
+			break
+		}
+	}
+	return
+}
+
+// MatchSpace returns true when the space name matches the filter.
 func (f *Filter) MatchSpace(name string) (match bool) {
+	if len(f.Spaces) == 0 {
+		match = true
+		return
+	}
 	for _, s := range f.Spaces {
 		match = s == name
 		if match {

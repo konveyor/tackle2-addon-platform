@@ -8,7 +8,7 @@ require (
 	github.com/cloudfoundry/go-cfclient/v3 v3.0.0-alpha.12.0.20250712142925-13a7dc5466ad
 	github.com/goccy/go-json v0.10.2
 	github.com/jortel/go-utils v0.1.4
-	github.com/konveyor/asset-generation v0.1.12
+	github.com/konveyor/asset-generation v0.1.13-0.20251104205826-798eefac101e
 	github.com/konveyor/tackle2-addon v0.8.0-alpha.1
 	github.com/konveyor/tackle2-hub v0.8.0-beta.4.0.20250915141536-ccf24542dd57
 	github.com/onsi/gomega v1.38.2
@@ -102,7 +102,7 @@ require (
 	github.com/sirupsen/logrus v1.9.3 // indirect
 	github.com/spf13/cast v1.7.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
-	github.com/stretchr/testify v1.10.0 // indirect
+	github.com/stretchr/testify v1.11.0 // indirect
 	github.com/trivago/tgo v1.0.7 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ugorji/go/codec v1.2.11 // indirect
