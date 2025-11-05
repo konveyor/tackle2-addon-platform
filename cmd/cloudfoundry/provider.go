@@ -104,7 +104,7 @@ func (p *Provider) Tag() string {
 }
 
 // client returns a cloudfoundry client.
-func (p *Provider) client(f Filter) (client *cfp.CloudFoundryProvider, err error) {
+func (p *Provider) client(filter Filter) (client *cfp.CloudFoundryProvider, err error) {
 	options := []cf.Option{
 		cf.SkipTLSValidation(),
 	}
@@ -122,8 +122,8 @@ func (p *Provider) client(f Filter) (client *cfp.CloudFoundryProvider, err error
 	}
 	pConfig := &cfp.Config{
 		CloudFoundryConfig: cfConfig,
-		OrgNames:           f.Organizations,
-		SpaceNames:         f.Spaces,
+		OrgNames:           filter.Organizations,
+		SpaceNames:         filter.Spaces,
 	}
 	client, err = cfp.New(pConfig, &addon.Log, true)
 	if err != nil {
