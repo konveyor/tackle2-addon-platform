@@ -46,11 +46,11 @@ func (a *Import) Run(d *Data) (err error) {
 		len(applications))
 	for _, app := range applications {
 		app.Tags = append(
-			append(app.Tags,
-				api.TagRef{
-					Source: TagSource,
-					ID:     tag.ID,
-				}))
+			app.Tags,
+			api.TagRef{
+				Source: TagSource,
+				ID:     tag.ID,
+			})
 		app.Platform = &api.Ref{
 			ID: a.platform.ID,
 		}
