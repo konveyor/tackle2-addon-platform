@@ -8,7 +8,7 @@ require (
 	github.com/cloudfoundry/go-cfclient/v3 v3.0.0-alpha.12.0.20250712142925-13a7dc5466ad
 	github.com/goccy/go-json v0.10.2
 	github.com/jortel/go-utils v0.1.4
-	github.com/konveyor/asset-generation v0.1.13-0.20251104205826-798eefac101e
+	github.com/konveyor/asset-generation v0.2.2
 	github.com/konveyor/tackle2-addon v0.8.0-alpha.1
 	github.com/konveyor/tackle2-hub v0.8.0-beta.4.0.20250915141536-ccf24542dd57
 	github.com/onsi/gomega v1.38.2
