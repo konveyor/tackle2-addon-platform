@@ -11,7 +11,7 @@ import (
 	"strings"
 	"unicode"
 
-	"github.com/konveyor/tackle2-addon/repository"
+	"github.com/konveyor/tackle2-addon/scm"
 	"github.com/konveyor/tackle2-hub/api"
 	"github.com/konveyor/tackle2-hub/binding"
 	"github.com/konveyor/tackle2-hub/nas"
@@ -51,8 +51,7 @@ func (a *Generate) Run(d *Data) (err error) {
 			})
 		return
 	}
-	var options []any
-	identity, found, err :=
+	identity, _, err :=
 		addon.Application.Identity(a.application.ID).Search().
 			Direct("asset").
 			Direct("source").
@@ -61,13 +60,10 @@ func (a *Generate) Run(d *Data) (err error) {
 	if err != nil {
 		return
 	}
-	if found {
-		options = append(options, identity)
-	}
-	assetRepo, err := repository.New(
+	assetRepo, err := scm.New(
 		AssetDir,
-		a.application.Assets,
-		options...)
+		*a.application.Assets,
+		identity)
 	if err != nil {
 		return
 	}
@@ -419,8 +415,7 @@ func (a *Generate) cloneCode() (sourceDir string, err error) {
 			})
 		return
 	}
-	var options []any
-	identity, found, err :=
+	identity, _, err :=
 		addon.Application.Identity(a.application.ID).Search().
 			Direct("source").
 			Indirect("source").
@@ -428,20 +423,17 @@ func (a *Generate) cloneCode() (sourceDir string, err error) {
 	if err != nil {
 		return
 	}
-	if found {
-		options = append(options, identity)
-	}
 	sourceDir = path.Join(
 		SourceDir,
 		strings.Split(
 			path.Base(
 				a.application.Repository.URL),
 			".")[0])
-	var rp repository.SCM
-	rp, err = repository.New(
+	var rp scm.SCM
+	rp, err = scm.New(
 		sourceDir,
-		a.application.Repository,
-		options...)
+		*a.application.Repository,
+		identity)
 	if err != nil {
 		return
 	}
@@ -466,14 +458,18 @@ func (a *Generate) cloneTemplates(gen *api.Generator) (templateDir string, err e
 		err = wrap(err)
 		return
 	}
-	var options []any
+	var identity *api.Identity
 	if gen.Identity != nil {
-		options = append(options, gen.Identity)
+		identity, err = addon.Identity.Get(gen.Identity.ID)
+		if err != nil {
+			err = wrap(err)
+			return
+		}
 	}
-	template, err := repository.New(
+	template, err := scm.New(
 		templateDir,
-		gen.Repository,
-		options...)
+		*gen.Repository,
+		identity)
 	if err != nil {
 		return
 	}

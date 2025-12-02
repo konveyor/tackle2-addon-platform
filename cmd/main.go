@@ -4,7 +4,6 @@ import (
 	"os"
 	"path"
 
-	"github.com/konveyor/tackle2-addon/ssh"
 	hub "github.com/konveyor/tackle2-hub/addon"
 	"github.com/konveyor/tackle2-hub/api"
 	"github.com/konveyor/tackle2-hub/nas"
@@ -62,13 +61,6 @@ func main() {
 				err = wrap(err)
 				return
 			}
-		}
-		//
-		// SSH
-		agent := ssh.Agent{}
-		err = agent.Start()
-		if err != nil {
-			return
 		}
 		//
 		// action
