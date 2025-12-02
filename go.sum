@@ -156,8 +156,8 @@ github.com/kisielk/gotool v1.0.0/go.mod h1:XhKaO+MFFWcvkIS/tQcRk01m1F5IRFswLeQ+o
 github.com/klauspost/cpuid/v2 v2.0.9/go.mod h1:FInQzS24/EEf25PyTYn52gqo7WaD8xa0213Md/qVLRg=
 github.com/klauspost/cpuid/v2 v2.2.4 h1:acbojRNwl3o09bUq+yDCtZFc1aiwaAAxtcn8YkZXnvk=
 github.com/klauspost/cpuid/v2 v2.2.4/go.mod h1:RVVoqg1df56z8g3pUjL/3lE5UfnlrJX8tyFgg4nqhuY=
-github.com/konveyor/asset-generation v0.1.13-0.20251104205826-798eefac101e h1:KlmKcDY/MuZD4PGTr7ItcJzZGYkP21LaxfdJxsv0Jdc=
-github.com/konveyor/asset-generation v0.1.13-0.20251104205826-798eefac101e/go.mod h1:X5K2VuEV+PEBAI5O+9mNVDtCW4vFWDvFYRThpea+56U=
+github.com/konveyor/asset-generation v0.2.2 h1:bzg4wDO3M4NxayS3b7SKk0f6Ai2MP/mioCZozhphKfw=
+github.com/konveyor/asset-generation v0.2.2/go.mod h1:X5K2VuEV+PEBAI5O+9mNVDtCW4vFWDvFYRThpea+56U=
 github.com/konveyor/tackle2-addon v0.9.0-alpha.1.0.20251202141412-f6352badfc54 h1:UShZ/8YVYyeJM4K9DeI8Zfpu9P6BprMoDXEeSnPsntU=
 github.com/konveyor/tackle2-addon v0.9.0-alpha.1.0.20251202141412-f6352badfc54/go.mod h1:2BWleIACV8Iavoe45MUMN2bQ3kbqBV73/NMxnjSKJ4M=
 github.com/konveyor/tackle2-hub v0.9.0-alpha.1.0.20251202133231-c937c30f820f h1:v2dC0WUXfTXw+XJz5LuoqjauoUp0xvEu6lL0+Ofr4Xc=
