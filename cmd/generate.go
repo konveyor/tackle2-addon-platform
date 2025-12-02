@@ -449,6 +449,13 @@ func (a *Generate) cloneCode() (sourceDir string, err error) {
 
 // cloneTemplates clones the repository associated with the generator.
 func (a *Generate) cloneTemplates(gen *api.Generator) (templateDir string, err error) {
+	if gen.Repository == nil {
+		err = wrap(
+			&RepositoryNotDefined{
+				Role: "Template",
+			})
+		return
+	}
 	genId := strconv.Itoa(int(gen.ID))
 	templateDir = path.Join(
 		TemplateDir,
