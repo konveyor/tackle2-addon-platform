@@ -9,11 +9,12 @@ require (
 	github.com/goccy/go-json v0.10.2
 	github.com/jortel/go-utils v0.1.5
 	github.com/konveyor/asset-generation v0.2.2
-	github.com/konveyor/tackle2-addon v0.9.0-alpha.1.0.20251202141412-f6352badfc54
-	github.com/konveyor/tackle2-hub v0.9.0-alpha.1.0.20251202133231-c937c30f820f
+	github.com/konveyor/tackle2-hub/shared v0.0.0-20260115191018-b892f141d326
 	github.com/onsi/gomega v1.38.2
 	sigs.k8s.io/yaml v1.4.0
 )
+
+replace github.com/konveyor/tackle2-hub/shared => github.com/jortel/tackle2-hub/shared v0.0.0-20260116151243-a0eb1c10d688
 
 require (
 	dario.cat/mergo v1.0.1 // indirect
@@ -56,7 +57,7 @@ require (
 	github.com/goccy/go-yaml v1.11.3 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang-jwt/jwt/v4 v4.5.0 // indirect
-	github.com/golang-jwt/jwt/v5 v5.2.1 // indirect
+	github.com/golang-jwt/jwt/v5 v5.0.0 // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/google/gnostic-models v0.6.8 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
